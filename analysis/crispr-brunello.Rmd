@@ -1,0 +1,638 @@
+---
+title: "Shear stress CRISPR experiment"
+subtitle: "Differential abundance using MAGeCK rra module for Brunello library"
+author: "Francesc Castro-Giner"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+params:
+  date: '`r format(Sys.Date(), "%B %d, %Y")`'
+  se_files: ./data/crispr/brunello_human_v1/se.rds
+  output_dir: ./output/crispr/brunello_human_v1
+  mageck_dir: mageck_rra
+---
+
+
+## Load libraries, additional functions and data
+
+Setup environment
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(results='asis', echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.align = 'center', fig.width = 3.5, fig.asp = 0.618, dpi = 600, dev = c("png", "pdf"), engine.opts = list(bash = "-l"))
+
+options(stringsAsFactors = FALSE)
+
+use_seed <- 1100101
+
+set.seed(use_seed)
+```
+
+
+Load packages
+```{r load-libraries}
+library(tidyverse)
+library(foreach)
+library(SummarizedExperiment)
+library(DT)
+library(colorblindr)
+library(ggdendro)
+library(RColorBrewer)
+library(circlize)
+library(Hmisc)
+library(ComplexHeatmap)
+library(ineq)
+library(knitr)
+library(kableExtra)
+library(magrittr)
+library(ggrepel)
+library(ggpubr)
+library(ggbeeswarm)
+library(ggridges)
+library(openxlsx)
+library(MAGeCKFlute)
+library(janitor)
+```
+
+Load ggplot theme
+```{r ggplot-theme, include=TRUE}
+source("./configuration/rmarkdown/ggplot_theme.R")
+```
+
+Load custom functions
+```{r load-functions}
+source('./code/R-functions/dge_report.r')
+source('./code/R-functions/gse_report.r')
+source('./code/R-functions/gse_omnibus.r')
+clean_msigdb_names <- function(x) x %>% gsub('HALLMARK_', '', .) %>% gsub('REACTOME_', '', .) %>% gsub('WP_', '', .) %>% gsub('BIOCARTA_', '', .) %>% gsub('KEGG_', '', .) %>% gsub('PID_', '', .) %>% gsub('GOBP_', '', .) %>% gsub('_', ' ', .)
+```
+
+Clean files generated in previous runs
+```{r clean-files}
+rmd_file <- current_input()
+if(!is.null(rmd_file)) {
+  figures_dir <- file.path('./docs/figure',rmd_file)
+  if(dir.exists(figures_dir)) {
+    unlink(file.path(figures_dir, "*"))
+  }
+}
+```
+
+Load MSigDB gene sets
+```{r load-msigdb}
+msigdb_vs <- 'v2022.1.Hs'
+gmt_files_symbols <- list(
+  msigdb.c2.cp = paste0('./data/resources/MSigDB/', msigdb_vs, '/c2.cp.', msigdb_vs, '.symbols.gmt')
+)
+```
+
+## Data procesing
+Load Summarized Experiment object
+```{r load-se}
+se <- readRDS(params$se_file)
+```
+
+Combine all sublibraries and generate descriptive statistics
+```{r combine-se}
+se_chip <- se[!rowData(se)$control,se$condition == 'chip']
+se_control <- se[!rowData(se)$control,se$condition == 'control']
+
+mat_counts <- cbind(
+  chip = rowSums(assay(se_chip, 'counts')),
+  control = rowSums(assay(se_control, 'counts')) 
+)
+
+mat_counts_norm <- cbind(
+  chip = rowSums(assay(se_chip, 'counts_norm_mageck')),
+  control = rowSums(assay(se_control, 'counts_norm_mageck')) 
+)
+
+
+sec <- SummarizedExperiment(
+  assays = list(counts = mat_counts, counts_norm = mat_counts_norm),
+  colData = data.frame(sample_alias = 'chip', condition = 'chip') %>% 
+    bind_rows(data.frame(sample_alias = 'control', condition = 'control')) %>% 
+    DataFrame,
+  rowData = rowData(se_chip)
+)
+
+rowData(sec) %<>% data.frame %>% 
+  bind_cols(chip_sum = rowSums(assay(se_chip, 'counts_norm_mageck'))) %>% 
+  bind_cols(control_sum = rowSums(assay(se_control, 'counts_norm_mageck'))) %>% 
+  DataFrame
+```
+
+
+
+
+## Configure analyses
+List of comparisons
+```{r conf-comparisons}
+x <- colData(se) %>% data.frame
+
+comp_list <- list(
+  sublibrary_1 = list(
+    x %>% filter(sg_rna_sublibrary == 1 & condition == 'chip') %>% pull(sample_alias),
+    x %>% filter(sg_rna_sublibrary == 1 & condition == 'control') %>% pull(sample_alias),
+    rowData(se) %>% data.frame %>% filter(sublibrary %in% c("1", "control") ) %>% rownames
+    ),
+  sublibrary_2 = list(
+    x %>% filter(sg_rna_sublibrary == 2 & condition == 'chip') %>% pull(sample_alias),
+    x %>% filter(sg_rna_sublibrary == 2 & condition == 'control') %>% pull(sample_alias),
+    rowData(se) %>% data.frame %>% filter(sublibrary %in% c("2", "control") ) %>% rownames
+    ),
+  sublibrary_3 = list(
+    x %>% filter(sg_rna_sublibrary == 3 & condition == 'chip') %>% pull(sample_alias),
+    x %>% filter(sg_rna_sublibrary == 3 & condition == 'control') %>% pull(sample_alias),
+    rowData(se) %>% data.frame %>% filter(sublibrary %in% c("3", "control") ) %>% rownames
+    ),
+  sublibrary_4 = list(
+    x %>% filter(sg_rna_sublibrary == 4 & condition == 'chip') %>% pull(sample_alias),
+    x %>% filter(sg_rna_sublibrary == 4 & condition == 'control') %>% pull(sample_alias),
+    rowData(se) %>% data.frame %>% filter(sublibrary %in% c("4", "control") ) %>% rownames
+    ),
+  sublibrary_5 = list(
+    x %>% filter(sg_rna_sublibrary == 5 & condition == 'chip') %>% pull(sample_alias),
+    x %>% filter(sg_rna_sublibrary == 5 & condition == 'control') %>% pull(sample_alias),
+    rowData(se) %>% data.frame %>% filter(sublibrary %in% c("5", "control") ) %>% rownames
+    )
+)
+```
+
+```{r conf-comparisons-print}
+data_comp <- foreach(i = names(comp_list), .combine = rbind) %do% {
+  c(
+    Comparison = i,
+    Case = paste(comp_list[[i]][[1]], collapse = " "),
+    Control = paste(comp_list[[i]][[2]], collapse = " ")
+  )
+}
+
+data_comp %>% 
+  datatable(., 
+            rownames = FALSE, 
+            filter = 'top', 
+            caption = 'Comparison of guide abundance. P value by two-sided Wiloxon test',
+            extensions = 'Buttons', 
+            options = list(
+              dom = 'Blfrtip',
+              buttons = c('csv', 'excel'),
+              columnDefs = list(
+                list(width = 120, targets = 1:2)
+              )
+            )
+            )
+
+```
+
+
+
+## Run MAGeCK
+
+Generate MAGeCK test scripts. Run MAGeCK test for each comparison in the terminal
+```{r generate-mageck-cmds, eval = FALSE}
+out_dir <- file.path(params$output_dir, params$mageck_dir)
+dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Generate list of control sgRNA IDs
+non_target_list <- rowData(se) %>% data.frame %>% filter(control) %>% rownames %>% data.frame
+write_tsv(non_target_list, file = file.path(out_dir, 'control_sgrna.txt'), col_names = F)
+  
+# Generate files by comparison
+res_cmd <- foreach(i = names(comp_list), .combine = rbind) %do% {
+  use_comp <- comp_list[[i]]
+  
+  # Generate count matrix
+  count_mat_name <- paste0(i,'.counts.txt')
+  count_mat <- assay(se[use_comp[[3]],], 'counts') %>% 
+    data.frame(check.names = FALSE) %>% 
+    rownames_to_column('sgrna_name') %>% 
+    left_join(rowData(se) %>% data.frame %>% select(sgrna_name, gene)) %>% 
+    dplyr::select(sgrna_name, gene, everything())
+  
+  write_tsv(count_mat, file = file.path(out_dir, count_mat_name))
+  
+  # Generate mageck commands
+   paste('mageck test -k', count_mat_name, '--control-sgrna control_sgrna.txt --norm-method control -t', paste(comp_list[[i]][[1]], collapse = ','),'-c',  paste(comp_list[[i]][[2]], collapse = ','), '-n', i, '\n')
+} %>% data.frame()
+
+res_cmd <- rbind('conda activate mageckenv', res_cmd, 'conda deactivate')
+write_tsv(res_cmd, file.path(out_dir, 'run_mageck_test.sh'), col_names = FALSE)
+```
+
+Load MAGeCK results
+```{r load-mageck}
+gene_summ_files <- list.files(path = file.path(params$output_dir, params$mageck_dir), pattern = 'gene_summary.txt', full.names = TRUE)
+analysis_prefix <- basename(gene_summ_files) %>% gsub(".gene_summary.txt", "", .)
+gene_summ <- foreach(i = gene_summ_files) %do% {read.delim(i, check.names = FALSE) %>% clean_names()}
+names(gene_summ) <- analysis_prefix
+
+sgrna_summ_files <- list.files(path = file.path(params$output_dir, params$mageck_dir), pattern = 'sgrna_summary.txt', full.names = TRUE)
+analysis_prefix <- basename(sgrna_summ_files) %>% gsub(".sgrna_summary.txt", "", .)
+sgrna_summ <- foreach(i = sgrna_summ_files) %do% {read.delim(i, check.names = FALSE) %>% clean_names()}
+names(sgrna_summ) <- analysis_prefix
+```
+
+Combine sublibrary results
+```{r combine-mageck}
+gene_summ$combined <- foreach(i = names(gene_summ), .combine = rbind) %do% {
+  gene_summ[[i]] %>% 
+    mutate(sublibrary = i)
+}
+
+sgrna_summ$combined <- foreach(i = names(sgrna_summ), .combine = rbind) %do% {
+  sgrna_summ[[i]] %>% 
+    mutate(sublibrary = i)
+}
+
+
+# recalculate FDR after combining sublibraries
+gene_summ$combined  %<>% 
+  mutate(
+    neg_fdr = p.adjust(neg_p_value, 'BH'),
+    pos_fdr = p.adjust(pos_p_value, 'BH')
+  )
+
+sgrna_summ$combined %<>% 
+  mutate(
+    fdr = p.adjust(p_twosided, 'BH')
+  )
+
+
+# recalculate rank
+gene_summ$combined  %<>% 
+  mutate(
+    neg_rank = rank(neg_p_value, ties.method = 'first'),
+    pos_rank = rank(pos_p_value, ties.method = 'first')
+  )
+
+```
+
+## Run GSE omnibus
+```{r run-gse-omnibus, eval = FALSE}
+library(org.Hs.eg.db)
+x <- gene_summ$combined
+gse_res <- gse_omnibus(
+    feature_names = x$id,
+    p = x$neg_fdr,
+    fc = x$neg_lfc,
+    fc_thrs = 0.1,
+    gmt_files = gmt_files_symbols,
+    
+    run_enricher = TRUE,
+    run_GSEA = TRUE,
+
+    args_gse = list(minGSSize = 10, maxGSSize = 250, pvalueCutoff = 1),
+    args_enricher = list(minGSSize = 10, maxGSSize = 2500, pvalueCutoff = 1), 
+    )
+saveRDS(gse_res, file = file.path(params$output_dir, params$mageck_dir, 'gse.rds'))
+```
+
+```{r load-gse-omnibus}
+gse_res <- readRDS(file.path(params$output_dir, params$mageck_dir, 'gse.rds'))
+```
+
+
+
+## Figure 3b: Rank plot
+
+Plot presenting genes ranked by log2 fold-change with top depleted genes under shear stress highlighted in blue. All other genes are indicated in grey. Thresholds (dashed lines) were calculated using the mean ± 5 standard deviations of all log2 fold-changes treatment scores. 
+
+```{r rank-plot-raw, fig.width = 1.35, fig.asp = 1.1}
+use_linewidth <- 1/2.141959
+i <- 'combined'
+x <- gene_summ[[i]] %>%  ReadRRA(score = 'lfc') %>% dplyr::rename(LFC = Score)
+gene_list <-  x$LFC %>% set_names( x$id) %>% na.omit
+# RankView(gene_list, top = 20, bottom = 0)
+
+# RankView(
+#   gene_list,
+#   top = 0,
+#   bottom = 0)
+
+
+RankView2 <- function (rankdata, genelist = NULL, decreasing = TRUE, top = 5, 
+    bottom = 5, cutoff = 2, main = NULL, filename = NULL, width = 5, 
+    height = 4, label.size = 2.5, ...) 
+{
+    requireNamespace("ggrepel", quietly = TRUE) || stop("need ggrepel package")
+    if (length(cutoff) < 2) {
+        cutoff = CutoffCalling(rankdata, cutoff)
+        cutoff = c(-cutoff, cutoff)
+    }
+    else cutoff = sort(cutoff)
+    data = data.frame(Gene = names(rankdata), diff = rankdata, 
+        stringsAsFactors = FALSE)
+    if (decreasing) 
+        data$Rank = rank(-data$diff)
+    else data$Rank = rank(data$diff)
+    data$group = "no"
+    data$group[data$diff > cutoff[2]] = "up"
+    data$group[data$diff < cutoff[1]] = "down"
+    return(data)
+}
+
+data_rank<- RankView2(
+  gene_list,
+  cutoff = 5
+)
+
+mycolour <-  c(no = "gray80", up = "#e41a1c", down = "#377eb8")
+
+ggplot(data_rank, aes(x = Rank, y = diff, color = group)) +
+  geom_point(size = 0.2) +
+  geom_hline(
+    yintercept =  CutoffCalling(gene_list, 5),
+    lty = 2,
+    linewidth = use_linewidth/2
+    ) +
+  geom_hline(
+    yintercept =  -CutoffCalling(gene_list, 5),
+    lty = 2,
+    linewidth = use_linewidth/2
+  ) +
+  geom_hline(
+    yintercept =  0,
+    lty = 1,
+    linewidth = use_linewidth/2
+  ) +
+  scale_color_manual(values = mycolour) +
+  labs(x = "Rank", y = expression(paste("lo", g[2],"(Fold change)"))) +
+  theme(
+    legend.position="none",
+    text = element_text(size = 4),
+    axis.text = element_text(size = 4),
+    axis.line = element_line(linewidth = use_linewidth/2),
+    axis.ticks = element_line(linewidth = use_linewidth/2)
+  )
+```
+
+
+## Figure 3c: Volcano plot
+
+Volcano plot illustrating the results of the CRISPR screen. Genes significantly depleted in samples circulated through the microfluidic platform (shear stress) are indicated in blue (FDR < 0.05). Non-significant genes are depicted in grey.
+
+```{r volcano-plot, fig.width = 1.35,  fig.asp = 0.86}
+i <- 'combined'
+x <- gene_summ[[i]] %>%  ReadRRA(score = 'lfc') %>% dplyr::rename(LFC = Score)
+use_linewidth <- 1/2.141959
+topn <- 20
+
+# Set coloring group
+mycolour <-  c(no = "gray80", up = "#e41a1c", down = "#377eb8")
+x %<>% 
+  mutate(
+    group = ifelse(LFC < 0 & FDR < 0.05, 'down', 'no'),
+    group = ifelse(LFC > 0 & FDR < 0.05, 'up', group)
+  )
+
+# Symmetric x-limits
+use_xlim <- c(-max(abs(x$LFC), na.rm = TRUE), max(abs(x$LFC), na.rm = TRUE)) %>% 
+  round
+
+x %>% 
+  ggplot(aes(LFC, -log10(FDR), color = group)) +
+  geom_point(size = 0.4, alpha = 0.6, shape = 16) +
+  scale_color_manual(values = mycolour) +
+  scale_y_continuous(expand = c(0, 0),
+                     limits = c(0, 4)) +
+  scale_x_continuous(expand = c(0, 0),
+                     limits = use_xlim) +
+  labs(
+    x = expression(paste("lo", g[2],"(Fold change)")),
+    y = expression(paste("-lo", g[10],"(FDR)"))
+  ) +
+  theme(
+    legend.position="none",
+    text = element_text(size = 4),
+    axis.text = element_text(size = 4),
+    axis.line = element_line(linewidth = use_linewidth/2),
+    axis.ticks = element_line(linewidth = use_linewidth/2)
+  )
+
+```
+
+
+## Figure 3d and Extended Data Figure 5c,d: Functional enrichment
+
+```{r ora-msigdb-c2_cp-dot-conf, fig.width=2, fig.asp = 0.9}
+library(enrichplot)
+top_n <- 20
+n_split <- 8
+p_thresh <- 0.00001
+use_gse <- gse_res$enricher$down$msigdb.c2.cp
+use_gse <- pairwise_termsim(use_gse)
+
+# Keep only reactome and kegg and WP, removing overlapping pathways, selecting P.adjust
+res_top <- use_gse@result %>% 
+  filter(grepl('REACTOME|KEGG|WP_', ID)) %>% 
+  filter(setSize < 500) %>% 
+  filter(!ID %in% 'KEGG_CELL_CYCLE') %>%
+  filter(!ID %in% 'WP_DNA_REPLICATION') %>%
+  filter(!ID %in% 'KEGG_PYRIMIDINE_METABOLISM') %>%
+  mutate(
+    Description = clean_msigdb_names(Description)
+  ) %>%
+  filter(p.adjust < p_thresh)
+
+use_gse@result <- use_gse@result[rownames(res_top),]
+
+# Similarity matrix
+similarity_matrix <- use_gse@termsim
+use_mat <- similarity_matrix[rownames(res_top), rownames(res_top)]
+for(x in rownames(use_mat)){
+  for(y in colnames(use_mat)) {
+    if(x == y) {
+       use_mat[x,y] <- 1
+    } else {
+      max_sim <- max(c(use_mat[x,y], use_mat[y,x]), na.rm = TRUE)
+      use_mat[x,y] <- max_sim
+      use_mat[y,x] <- max_sim
+    }
+  }
+}
+rownames(use_mat) <- clean_msigdb_names(rownames(use_mat))
+colnames(use_mat) <- clean_msigdb_names(colnames(use_mat))
+
+# Cluster the similarity matrix
+# Use the ward.D method to avoid overlapping ancestor nodes of each group
+hc <- hclust(
+  as.dist(1- use_mat),
+  method = 'ward.D'
+)
+
+split <- cutree(hc, k=n_split) %>% data.frame %>% set_names('cluster')
+split$curated_id <- clean_msigdb_names(rownames(split))
+
+# Combine cell cycle gene sets into one cluster
+rho_cluster <- split %>% filter(curated_id == 'RHO GTPASE EFFECTORS') %>% pull(cluster)
+split %<>%
+  mutate(
+    cluster = ifelse(
+      cluster == rho_cluster &
+      curated_id %in% c('MITOTIC METAPHASE AND ANAPHASE',
+                        'MITOTIC SPINDLE CHECKPOINT',
+                        'CELL CYCLE CHECKPOINTS',
+                        'SEPARATION OF SISTER CHROMATIDS'
+                        ),
+      2,
+      cluster
+    )
+  )
+# Manually annotate clusters, using top gene sets per cluster as guide
+# fake_gseaResult@result %>% filter(cluster == '1') %>% select(ID, NES, p.adjust, GeneRatio, core_enrichment)
+split$cluster_name <- case_when(
+  split$cluster == 1 ~ 'mRNA splicing',
+  split$cluster == 2 ~ 'Cell cycle - M phase',
+  split$cluster == 3 ~ 'Rho GTPases - CDC42',
+  split$cluster == 4 ~ 'Proteolisis and RNA degradation',
+  split$cluster == 5 ~ 'Transport of mature mRNA',
+  split$cluster == 6 ~ 'DNA replication',
+  split$cluster == 7 ~ 'SUMO dependent protein transport',
+  split$cluster == 8 ~ 'rRNA processing',
+  TRUE ~ 'Other'
+)
+
+
+split$cluster_arranged <- case_when(
+  split$cluster_name == 'mRNA splicing' ~ 3,
+  split$cluster_name == 'Cell cycle - M phase' ~ 2,
+  split$cluster_name == 'Rho GTPases - CDC42' ~ 1,
+  split$cluster_name == 'Proteolisis and RNA degradation' ~ 5,
+  split$cluster_name == 'Transport of mature mRNA' ~ 7,
+  split$cluster_name == 'DNA replication' ~ 4,
+  split$cluster_name == 'SUMO dependent protein transport' ~ 6,
+  split$cluster_name == 'rRNA processing' ~ 8,
+  TRUE ~ NA
+)
+split %<>% 
+  mutate(
+    cluster_fct = factor(cluster, levels = as.character(1:n_split)),
+    cluster_name =  fct_reorder(cluster_name, cluster_arranged)
+  )
+
+
+res_top <- res_top %>% 
+  left_join(split, by = c('Description' = 'curated_id'))
+```
+
+
+### Figure 3d and Extended Data Figure 5d: Similarity matrix
+
+Similarity matrix illustrating significantly enriched pathways within the depleted genes in samples circulated through microfluidic platform (shear stress) compared to samples incubated in static conditions (control), calculated based on the Jaccard index to measure pathway semantic overlap including the extensive list of pathways.
+
+```{r ora-msigdb-c2cp-similarity-matrix-heatmap-wardD, fig.width=7.2}
+col_fun <- colorRamp2(seq(0, 1, length.out = 4), brewer.pal(4, "GnBu"))
+ht <- Heatmap(
+  use_mat, 
+  name = 'Jaccard index',
+  # column_split = n_split,
+  # row_split = n_split,
+  # column_km = n_split,
+  # row_km = n_split,
+  column_split = split$cluster_arranged,
+  row_split = split$cluster_name,
+  cluster_column_slices = FALSE,
+  cluster_row_slices = FALSE,
+  
+  # column_title = NULL,
+  # row_title = NULL,
+  row_title_rot = 0,
+  row_title_gp = gpar(fontsize = 5),
+  column_title_gp = gpar(fontsize = 5),
+  
+  col = col_fun,
+  show_column_dend = FALSE,
+  show_column_names = FALSE, 
+  show_row_dend = FALSE,
+  row_names_gp = gpar(fontsize = 3),
+  border = TRUE,
+  # top_annotation = ha_top, 
+  heatmap_legend_param = list(
+    title_gp = gpar(fontsize = 8),
+    labels_gp = gpar(fontsize = 8),
+    direction = "horizontal"),
+  width = unit(7, "cm")
+  )
+draw(ht,  heatmap_legend_side = "bottom")
+```
+
+#### Extended Data Figure 5c
+
+Over Representation Analysis (ORA) plot for gene sets with an adjusted P value < 0.05.
+
+```{r ora-msigdb-c2cp-dotplot-full, fig.width = 3, fig.asp = 2.0}
+use_linewidth <- 1/2.141959
+
+use_data <- res_top %>% 
+  mutate(
+    p.sig = p.adjust < 0.05,
+    p.adjust = -log10( p.adjust),
+    Description = fct_reorder(Description, p.adjust)
+    )
+use_data %>% 
+  ggplot(aes(p.adjust, Description, color = p.adjust, size = GeneProp)) +
+  geom_point(shape = 16) +
+  facet_grid(rows = vars(cluster_name),
+             scale = 'free', space = 'free',
+             labeller = label_wrap_gen(40) ) +
+  scale_color_distiller(palette = "BuPu", na.value = "grey70", 
+                        direction = 1,
+                        limits = c(0, max(use_data$p.adjust)))+
+  # scale_color_manual(values = c('white', 'black')) +
+  scale_y_discrete(labels = default_labeller(50)) +
+  scale_size_continuous(range=c(0.1, 0.9)) +
+  labs(y = '', 
+       x = '',  
+       size = expression(paste("lo", g[10],"(FDR)")),
+       ) +
+  theme(
+    text = element_text(size = 4),
+    axis.line = element_blank(),
+    # axis.ticks.y = element_blank(),
+    axis.ticks.y = element_line(linewidth = use_linewidth/2),
+    axis.ticks.x = element_line(linewidth = use_linewidth/2),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = use_linewidth),
+   
+    strip.background = element_blank(),
+    axis.text.y = element_text(size = 2),
+    axis.text.x = element_text(size = 3),
+    legend.text = element_text(size = 2),
+    legend.title = element_text(size = 2),
+    legend.key.width = unit(0.1, "cm"),
+    
+    strip.text.y = element_text(size = 2, angle = 0, hjust = 0),
+    panel.spacing = unit(0.07, "lines")
+  )
+
+```
+
+
+## Figure 3e: CDC42 sgRNA abundance
+
+Normalized *CDC42* gRNA abundance comparison in samples incubated in static conditions (control) or circulated through the microfluidic platform for four hours (shear stress). Each dot corresponds to an individual gRNA. The lines connect the paired values.
+
+```{r guides-paired-abundance}
+use_data <- sgrna_summ$combined %>% 
+  dplyr::select(sgrna, gene, control_count, treatment_count) %>% 
+  pivot_longer(-c(sgrna, gene), names_to = 'condition', values_to = 'counts') %>% 
+  mutate(
+    condition = ifelse(condition == 'control_count', 'Control', 'Chip'),
+    condition = factor(condition, levels = c('Control', 'Chip'))
+  )
+```
+
+```{r guides-paired-abundance-cdc42, fig.width = 1.8, fig.asp = 1.2}
+use_gene <- 'CDC42'
+use_data %>% 
+  filter(gene == use_gene) %>% 
+  ggplot(aes(x = condition, y = counts, group = sgrna)) +
+  geom_point() +
+  geom_line() +
+  scale_x_discrete(expand = c(0.08, 0.08)) +
+  scale_y_continuous(expand = c(0.049, 0)) +
+  labs(
+    x = '',
+    y = 'Normalized counts',
+    title = paste('sgRNAs in', use_gene)
+  )
+```
