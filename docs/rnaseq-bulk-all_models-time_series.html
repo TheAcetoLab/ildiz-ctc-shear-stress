@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Francesc Castro-Giner" />
+
+<meta name="date" content="2025-01-08" />
+
+<title>Analysis of all models</title>
+
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">ctc-shear-stress</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Analysis of all models</h1>
+<h3 class="subtitle">Combined figures</h3>
+<h4 class="author">Francesc Castro-Giner</h4>
+<h4 class="date">January 08, 2025</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2025-01-08
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>ildiz-ctc-shear-stress/</code>
+<span class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.1). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20250108code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20250108)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20250108code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20250108)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstree6323a09f22396a178e0f471eea4e283cdec07244targetblank6323a09a">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/6323a09f22396a178e0f471eea4e283cdec07244" target="_blank">6323a09</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstree6323a09f22396a178e0f471eea4e283cdec07244targetblank6323a09a"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/6323a09f22396a178e0f471eea4e283cdec07244" target="_blank">6323a09</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    data/differential_expression/
+    Ignored:    data/resources/
+    Ignored:    data/rnaseq/
+
+Untracked files:
+    Untracked:  analysis/rnaseq-bulk-br16-time_series.Rmd
+    Untracked:  analysis/rnaseq-bulk-brx07-time_series.Rmd
+    Untracked:  analysis/rnaseq-bulk-brx50-time_series.Rmd
+    Untracked:  code/R-functions/
+    Untracked:  configuration/
+    Untracked:  output/rnaseq/
+
+Unstaged changes:
+    Modified:   .gitignore
+    Modified:   ildiz-ctc-shear-stress.Rproj
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown
+(<code>analysis/rnaseq-bulk-all_models-time_series.Rmd</code>) and HTML
+(<code>docs/rnaseq-bulk-all_models-time_series.html</code>) files. If
+you’ve configured a remote Git repository (see
+<code>?wflow_git_remote</code>), click on the hyperlinks in the table
+below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/6323a09f22396a178e0f471eea4e283cdec07244/analysis/rnaseq-bulk-all_models-time_series.Rmd" target="_blank">6323a09</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+<td>
+add bulk RNA-seq analysis
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="load-libraries-additional-functions-and-data"
+class="section level2" number="1">
+<h2><span class="header-section-number">1</span> Load libraries,
+additional functions and data</h2>
+<p>Setup environment</p>
+<pre class="r"><code>knitr::opts_chunk$set(results=&#39;asis&#39;, echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.align = &#39;center&#39;, fig.width = 3.5, fig.asp = 0.618, dpi = 600, dev = c(&quot;png&quot;, &quot;pdf&quot;), engine.opts = list(bash = &quot;-l&quot;))
+
+options(stringsAsFactors = FALSE)
+
+use_seed &lt;- 1100101
+set.seed(use_seed)
+
+dir.create(params$output_dir, recursive = TRUE, showWarnings = FALSE)</code></pre>
+<p>Load packages</p>
+<pre class="r"><code># library(tidyverse)
+library(ggplot2)
+library(tibble)
+library(tidyr)
+library(readr)
+library(purrr)
+library(dplyr)
+library(forcats)
+library(magrittr)
+library(foreach)
+
+library(showtext)
+library(ggupset)
+library(ggtext)
+library(glue)
+library(cowplot)
+library(colorblindr)
+
+library(DT)
+library(knitr)
+library(kableExtra)
+
+library(RColorBrewer)
+library(ggbeeswarm)
+library(ggrepel)
+library(ComplexHeatmap)
+library(circlize)
+library(openxlsx)
+
+library(SummarizedExperiment)
+library(edgeR)
+library(DESeq2)
+library(scuttle)
+library(scran)
+library(pheatmap)
+library(PCAtools)
+library(apeglm)
+library(patchwork)
+library(geomtextpath)
+library(enrichplot)</code></pre>
+<p>Load ggplot theme</p>
+<pre class="r"><code>source(&quot;./configuration/rmarkdown/ggplot_theme.R&quot;)</code></pre>
+<p>Set color palettes</p>
+<p>Load custom functions</p>
+<pre class="r"><code>source(&#39;./code/R-functions/dge_report.r&#39;)
+source(&#39;./code/R-functions/gse_omnibus.r&#39;)
+source(&#39;./code/R-functions/gse_report.r&#39;)
+source(&#39;./code/R-functions/gse_treeplot.R&#39;)
+source(&#39;./code/R-functions/wordcloud.R&#39;) # required for gse_treeplot.R
+clean_msigdb_names &lt;- function(x) x %&gt;% gsub(&#39;HALLMARK_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;REACTOME_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;WP_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;BIOCARTA_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;KEGG_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;PID_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;GOBP_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;_&#39;, &#39; &#39;, .)</code></pre>
+<p>Load MSigDB gene sets</p>
+<pre class="r"><code>msigdb_vs &lt;- &#39;v2022.1.Hs&#39;
+gmt_files_symbols &lt;- list(
+  msigdb.c2.cp = paste0(&#39;./data/resources/MSigDB/&#39;, msigdb_vs, &#39;/c2.cp.&#39;, msigdb_vs, &#39;.symbols.gmt&#39;)
+)</code></pre>
+</div>
+<div id="data-processing" class="section level2" number="2">
+<h2><span class="header-section-number">2</span> Data processing</h2>
+<div id="load-original-data" class="section level3" number="2.1">
+<h3><span class="header-section-number">2.1</span> Load original
+data</h3>
+<pre class="r"><code>se_br16 &lt;- readRDS(&#39;data/rnaseq/bulk/se_br16.rds&#39;)
+se_brx07 &lt;- readRDS(&#39;data/rnaseq/bulk/se_brx07.rds&#39;)
+se_brx50 &lt;- readRDS(&#39;data/rnaseq/bulk/se_brx50.rds&#39;)
+
+se_br16$sample_alias &lt;- paste0(se_br16$donor, &#39;_&#39;,se_br16$sample_alias)
+se_brx07$sample_alias &lt;- paste0(se_brx07$donor, &#39;_&#39;,se_brx07$sample_alias)
+se_brx50$sample_alias &lt;- paste0(se_brx50$donor, &#39;_&#39;,se_brx50$sample_alias)
+
+colnames(se_br16) &lt;- se_br16$sample_alias
+colnames(se_brx07) &lt;- se_brx07$sample_alias
+colnames(se_brx50) &lt;- se_brx50$sample_alias
+
+rowData(se_br16) %&lt;&gt;% data.frame %&gt;% dplyr::select(-mean, -detected) %&gt;% DataFrame
+rowData(se_brx07) %&lt;&gt;% data.frame %&gt;% dplyr::select(-mean, -detected) %&gt;% DataFrame
+rowData(se_brx50) %&lt;&gt;% data.frame %&gt;% dplyr::select(-mean, -detected) %&gt;% DataFrame
+
+se &lt;- cbind(se_br16, se_brx07, se_brx50)
+se_o &lt;- colData(se) %&gt;% data.frame %&gt;% 
+  mutate(
+    total_features = nrow(se),
+    pct_detected = 100*detected/total_features
+  )
+
+rm(se_br16, se_brx07, se_brx50)</code></pre>
+</div>
+<div id="data-wrangling" class="section level3" number="2.2">
+<h3><span class="header-section-number">2.2</span> Data wrangling</h3>
+<p>Modify annotation</p>
+<pre class="r"><code>colData(se) &lt;- colData(se) %&gt;% data.frame %&gt;% 
+  mutate(
+    condition = factor(condition, levels= c(&#39;Control&#39;, &#39;Chip&#39;)),
+    time = factor(time, levels=time %&gt;% as.numeric %&gt;% sort %&gt;% unique),
+    group = paste(condition, time, sep = &#39;_&#39;),
+    group = factor(group, 
+                   levels = paste(
+                     c(&#39;Control&#39;, &#39;Chip&#39;), 
+                     time %&gt;% as.character %&gt;% as.numeric %&gt;% sort %&gt;% unique %&gt;% rep(2) %&gt;% sort, 
+                     sep = &#39;_&#39;)
+                   )
+    
+  ) %&gt;% 
+  DataFrame</code></pre>
+<p>Subset by feature type. Using protein coding features and lncRNA</p>
+<pre class="r"><code>use_rows &lt;- rowData(se)$gene_type %in% c(&#39;protein_coding&#39;, &#39;lncRNA&#39;)
+se &lt;- se[use_rows,]</code></pre>
+<p>Filtering out low-abundance features. Keeping those features with at
+least 10 counts in at least 70% of samples of the smallest group.</p>
+<pre class="r"><code>use_rows &lt;- filterByExpr(se, group=paste(se$condition,se$time, sep = &#39;-&#39;), min.count = 10, min.total.count = 15, min.prop = 0.7)
+se &lt;- se[use_rows,]
+
+# Update PerCellQCMetrics
+colData(se) &lt;- colData(se) %&gt;% data.frame %&gt;% dplyr::select(-(sum:subsets_Ribo_percent)) %&gt;% DataFrame
+se &lt;- addPerCellQCMetrics(
+  se,
+  subsets=list(
+    Mito=which(rowData(se)$is.mito),
+    Ribo=which(rowData(se)$is.ribo)
+  ),
+  percent.top = c(1,5,10,20, 50, 100),
+  threshold = 3
+  )
+
+# Table of removed features
+table(use_rows) %&gt;% 
+  data.frame %&gt;% 
+  mutate(use_rows = ifelse(use_rows == TRUE, &#39;keep&#39;, &#39;remove&#39;)) %&gt;% 
+  column_to_rownames(&#39;use_rows&#39;) %&gt;% 
+  kbl(caption = &#39;Filtered features&#39;) %&gt;%
+  kable_paper(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;), full_width = F)</code></pre>
+<p>TMM normalization</p>
+<pre class="r"><code>norm_method &lt;- &quot;TMM&quot;
+exprs_mat_for_norm &lt;- assay(se, &#39;counts&#39;)
+norm_factors &lt;- calcNormFactors(exprs_mat_for_norm, method = norm_method)
+lib_size &lt;- colSums(exprs_mat_for_norm)/10^6
+se$size_factor &lt;- (norm_factors * lib_size)
+se &lt;- logNormCounts(se, size.factors =se$size_factor)
+se &lt;- logNormCounts(se, size.factors =se$size_factor, log = FALSE)</code></pre>
+<p>CPM calculation</p>
+<pre class="r"><code>assay(se, &#39;cpm&#39;) &lt;- edgeR::cpm(assay(se, &#39;normcounts&#39;))
+assay(se, &#39;logcpm&#39;) &lt;- edgeR::cpm(assay(se, &#39;normcounts&#39;), log = TRUE)</code></pre>
+<p>Save final data</p>
+<pre class="r"><code>saveRDS(se, file = file.path(params$output_dir, &#39;se_merged.rds&#39;))</code></pre>
+<p>Load final data</p>
+<pre class="r"><code>se &lt;- readRDS(file = file.path(params$output_dir, &#39;se_merged.rds&#39;))</code></pre>
+</div>
+<div id="differential-expression" class="section level3" number="2.3">
+<h3><span class="header-section-number">2.3</span> Differential
+expression</h3>
+<p>Here we load differential expression results for each model. This
+results have been pre-computed in the corresponding Rmd files:</p>
+<ul>
+<li>analysis/rnaseq-bulk-br16-time_series.Rmd</li>
+<li>analysis/rnaseq-bulk-brx07-time_series.Rmd</li>
+<li>analysis/rnaseq-bulk-brx50-time_series.Rmd</li>
+</ul>
+<pre class="r"><code>dir_output &lt;- dirname(params$output_dir)
+dge &lt;- foreach(i=unique(se$donor)) %do% readRDS(file = file.path(dir_output, tolower(i), &#39;dge_deseq2.rds&#39;))
+names(dge) &lt;- unique(se$donor)
+
+# fold-change data.frame
+fc_by_time &lt;- foreach(tm = levels(se$time)[-1]) %do% {
+  foreach(donor = names(dge), .combine = rbind) %do% {
+    dge[[donor]]$lrt_time[[tm]] %&gt;% dplyr::select(ensembl_gene_id, gene_name, log2FoldChange) %&gt;% mutate(donor = donor)
+  } %&gt;% data.frame(check.names = FALSE) %&gt;% 
+    pivot_wider(names_from = donor, values_from = log2FoldChange)
+}
+names(fc_by_time) &lt;- levels(se$time)[-1]
+
+# padj data.frame
+p_by_time &lt;- foreach(tm = levels(se$time)[-1]) %do% {
+  foreach(donor = names(dge), .combine = rbind) %do% {
+    dge[[donor]]$lrt_time[[tm]] %&gt;% dplyr::select(ensembl_gene_id, gene_name, padj) %&gt;% mutate(donor = donor)
+  } %&gt;% data.frame(check.names = FALSE)
+}
+names(p_by_time) &lt;- levels(se$time)[-1]
+
+# Single data.frame with all the DGE results (all models and times)
+dge_df &lt;- foreach(tm = levels(se$time)[-1], .combine = rbind) %do% {
+  foreach(donor = names(dge), .combine = rbind) %do% {
+    dge[[donor]]$lrt_time[[tm]] %&gt;% mutate(donor = donor)
+  } %&gt;% data.frame(check.names = FALSE) %&gt;% 
+    mutate(time = tm)
+}
+
+saveRDS(dge_df, file = file.path(params$output_dir, &#39;dge_deseq2_df_combined.rds&#39;))</code></pre>
+<p>Define list and expression matrix used for heatmap and module
+definition</p>
+<pre class="r"><code># Logcounts matrix of top-genes
+use_rows &lt;- dge_df %&gt;% 
+  filter(padj &lt; 0.01) %&gt;% 
+  filter(ensembl_gene_id %in% rownames(se)) %&gt;% 
+  pull(ensembl_gene_id) %&gt;% 
+  unique
+mat &lt;- assay(se[use_rows,], &#39;logcounts&#39;)
+
+
+zmat &lt;- foreach(donor = unique(se$donor), .combine = cbind) %do% {
+  use_se &lt;- se[,se$donor == donor]
+  use_mat &lt;- mat[,colnames(use_se)]
+  res &lt;- t(apply(use_mat, 1, function(x) {scale(x, center = mean(x[colnames(use_se)[use_se$group == &#39;Control_0&#39;]]), scale = TRUE)}))
+  res[is.na(res)] &lt;- 0
+  colnames(res) &lt;- colnames(use_mat)
+  res
+}
+
+
+# Order columns by condition - time - replicate
+col_ord &lt;- colData(se) %&gt;% data.frame %&gt;% arrange(condition, time, replicate) %&gt;% pull(sample_alias)
+mat &lt;- mat[,col_ord]
+zmat &lt;- zmat[,col_ord]
+
+# Save matrix
+mat_topgenes &lt;- mat
+zmat_topgenes &lt;- zmat
+
+rm(mat, zmat)
+saveRDS(mat_topgenes, file = file.path(params$output_dir, &#39;dge_deseq2_combined_mat_topgenes.rds&#39;))
+saveRDS(zmat_topgenes, file = file.path(params$output_dir, &#39;dge_deseq2_combined_zmat_topgenes.rds&#39;))</code></pre>
+<p>Load data</p>
+<pre class="r"><code>dge_df &lt;- readRDS(file = file.path(params$output_dir, &#39;dge_deseq2_df_combined.rds&#39;))
+mat_topgenes &lt;- readRDS(file.path(params$output_dir, &#39;dge_deseq2_combined_mat_topgenes.rds&#39;))
+zmat_topgenes &lt;- readRDS(file.path(params$output_dir, &#39;dge_deseq2_combined_zmat_topgenes.rds&#39;))</code></pre>
+</div>
+<div id="functional-enrichment" class="section level3" number="2.4">
+<h3><span class="header-section-number">2.4</span> Functional
+enrichment</h3>
+<pre class="r"><code>dir_output &lt;- dirname(params$output_dir)
+time_gse_omnibus &lt;- foreach(i=unique(se$donor)) %do% readRDS(file = file.path(dir_output, tolower(i), &#39;dge_deseq2_time_gse.rds&#39;))
+names(time_gse_omnibus) &lt;- unique(se$donor)
+
+saveRDS(time_gse_omnibus, file = file.path(params$output_dir, &#39;time_gse_omnibus.rds&#39;))</code></pre>
+<pre class="r"><code>time_gse_omnibus &lt;- readRDS(file.path(params$output_dir, &#39;time_gse_omnibus.rds&#39;))</code></pre>
+</div>
+</div>
+<div id="supplementary-tables" class="section level2" number="3">
+<h2><span class="header-section-number">3</span> Supplementary
+tables</h2>
+<pre class="r"><code>dir_output &lt;- dirname(params$output_dir)
+dge_list &lt;- foreach(i=unique(se$donor)) %do% readRDS(file = file.path(dir_output, tolower(i), &#39;dge_deseq2.rds&#39;))
+names(dge_list) &lt;- unique(se$donor) %&gt;% gsub(&#39;BRx&#39;, &#39;Brx-&#39;, .)</code></pre>
+<!-- Write DGE results to xlsx file -->
+<pre class="r"><code># File name summary
+rmd_file &lt;- current_input()
+if(is.null(rmd_file))
+  rmd_file &lt;- &#39;tmp&#39;
+file_xlsx &lt;- file.path(&#39;./docs/file&#39;,rmd_file, &#39;st_1_dge.xlsx&#39;)
+
+dir.create(dirname(file_xlsx), recursive = TRUE, showWarnings = FALSE)
+
+# Generate workbook
+wb &lt;- createWorkbook()
+for(i in names(dge_list)) {
+  use_dge &lt;- dge_list[[i]]$lrt_time
+  names(use_dge) &lt;- (as.numeric(names(use_dge)) / 60) %&gt;% 
+    as.character
+  for(j in names(use_dge)) {
+    sheet_name &lt;- paste0(i, &#39; timepoint &#39;, j, &#39;h&#39;)
+    addWorksheet(wb, sheet_name)
+    res &lt;- use_dge[[j]] %&gt;% 
+      dplyr::select(gene_name,
+                    ensembl_gene_id,
+                    gene_type,
+                    log2FoldChange,
+                    pvalue,
+                    padj,
+                    description) %&gt;% 
+      arrange(padj)
+    writeData(wb, sheet_name, res)
+  }
+}
+saveWorkbook(wb, file_xlsx, TRUE)
+
+dge_file_xlsx &lt;- file_xlsx</code></pre>
+<ul>
+<li><a
+href="./file/rnaseq-bulk-all_models-time_series.Rmd/st_1_dge.xlsx"><strong>Supplementary
+Table 1 : Bulk RNA-sequencing differential gene expression
+analysis</strong></a>. Table listing genes differentially expressed in
+BR16, Brx-07 and Brx-50 CTC cell lines incubated in static conditions
+(control) versus circulated through the microfluidic platform (shear
+stress) over time.</li>
+</ul>
+<pre class="r"><code>test_type &lt;- &#39;GSEA&#39;
+gset_collection &lt;- &#39;msigdb.c2.cp&#39;
+use_gse_omnibus &lt;- time_gse_omnibus
+names(use_gse_omnibus) &lt;- names(use_gse_omnibus) %&gt;% gsub(&#39;BRx&#39;, &#39;Brx-&#39;, .)
+
+# File name summary
+rmd_file &lt;- current_input()
+if(is.null(rmd_file))
+  rmd_file &lt;- &#39;tmp&#39;
+file_xlsx &lt;- file.path(&#39;./docs/file&#39;,rmd_file, &#39;st_2_gsea.xlsx&#39;)
+
+dir.create(dirname(file_xlsx), recursive = TRUE, showWarnings = FALSE)
+
+# Generate workbook
+wb &lt;- createWorkbook()
+
+for(i in names(use_gse_omnibus)) {
+  use_gse_i &lt;- use_gse_omnibus[[i]]
+  names(use_gse_i) &lt;- (as.numeric(names(use_gse_i)) / 60) %&gt;% 
+    as.character
+  for(j in names(use_gse_i)) {
+    sheet_name &lt;- paste0(i, &#39; timepoint &#39;, j, &#39;h&#39;)
+    addWorksheet(wb, sheet_name)
+    res &lt;- use_gse_i[[j]][[test_type]][[gset_collection]]@result %&gt;%
+      filter(grepl(&#39;REACTOME|KEGG|WP_&#39;, ID)) %&gt;% 
+      filter(!ID %in% &#39;KEGG_TRYPTOPHAN_METABOLISM&#39;) %&gt;% 
+      filter(!ID %in% &#39;WP_GLUCURONIDATION&#39;) %&gt;% 
+      filter(!ID %in% &#39;WP_MAPK_SIGNALING_PATHWAY&#39;) %&gt;% 
+      mutate(
+        Description = clean_msigdb_names(Description)
+      ) %&gt;% 
+      dplyr::select(ID,
+                    Description,
+                    setSize,
+                    NES,
+                    pvalue,
+                    p.adjust,
+                    leading_edge,
+                    Count, 
+                    GeneRatio,
+                    core_enrichment) %&gt;% 
+      arrange(pvalue)
+    writeData(wb, sheet_name, res)
+  }  
+  
+}
+saveWorkbook(wb, file_xlsx, TRUE)
+gsea_file_xlsx &lt;- file_xlsx</code></pre>
+<ul>
+<li><a
+href="./file/rnaseq-bulk-all_models-time_series.Rmd/st_2_gsea.xlsx"><strong>Supplementary
+Table 2 : Bulk RNA-sequencing gene set enrichment analysis
+(GSEA)</strong></a>. Table listing GSEA gene sets from differentially
+expressed genes in BR16, Brx-07 and Brx-50 CTC cell lines incubated in
+static conditions (control) versus circulated through the microfluidic
+platform (shear stress) over time.</li>
+</ul>
+</div>
+<div id="extended-data-figures-3a-c" class="section level2" number="4">
+<h2><span class="header-section-number">4</span> Extended Data Figures
+3a-c</h2>
+<pre class="r"><code>p_thrs &lt;- 0.01
+
+dir_output &lt;- dirname(params$output_dir)
+
+dge_table_by_time &lt;- foreach(use_model = unique(se$donor)) %do% {
+  dge &lt;- readRDS(file = file.path(dir_output, tolower(use_model), &#39;dge_deseq2.rds&#39;))
+  foreach(i = names(dge$lrt_time), .combine = rbind) %do% {
+    data.frame(
+      time = i,
+      all = dge$lrt_time[[i]] %&gt;% filter(padj &lt; p_thrs)  %&gt;% nrow,
+      up =  dge$lrt_time[[i]] %&gt;% filter(padj &lt; p_thrs &amp; log2FoldChange &gt; 0) %&gt;% nrow,
+      down =  dge$lrt_time[[i]] %&gt;% filter(padj &lt; p_thrs &amp; log2FoldChange &lt; 0) %&gt;% nrow
+    )
+  }
+}
+names(dge_table_by_time) &lt;- tolower(unique(se$donor))</code></pre>
+<div id="extended-data-figure-3a-differentially-expressed-genes-in-br16"
+class="section level3" number="4.1">
+<h3><span class="header-section-number">4.1</span> Extended Data Figure
+3a: Differentially expressed genes in BR16</h3>
+<p>Bar plot showing the number of differentially expressed genes in BR16
+CTCs over time, comparing cells incubated in static conditions (control)
+and cells circulated through the microfluidic platform (shear stress)
+(bulk RNA-sequencing).</p>
+<pre class="r"><code>dge_table_by_time[[&#39;br16&#39;]] %&gt;% 
+  pivot_longer(cols = one_of(c(&#39;up&#39;, &#39;down&#39;)), names_to = &#39;set&#39;, values_to = &#39;genes&#39;) %&gt;% 
+  mutate(
+    time = factor(time, levels = names(time_palette)),
+    set = factor(set, levels = c(&#39;up&#39;, &#39;down&#39;))) %&gt;% 
+  ggplot(aes(time, genes, fill = set)) +
+  geom_col() +
+  scale_fill_manual(values = c(up = brewer.pal(n = 11, name =&quot;BrBG&quot;)[3], down = brewer.pal(n = 11, name =&quot;BrBG&quot;)[9])) +
+  labs(
+    x = &#39;Time (minutes)&#39;,
+    y = &#39;Number of gene&#39;,
+    fill = &#39;&#39;,
+    title = &#39;Number of significant genes by time&#39;,
+    caption = paste(&quot;Adjusted P value &lt;&quot;, p_thrs)
+  )</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-time-summary-barplot-br16-1.png" width="2100" style="display: block; margin: auto;" /></p>
+</div>
+<div
+id="extended-data-figure-3b-differentially-expressed-genes-in-brx-07"
+class="section level3" number="4.2">
+<h3><span class="header-section-number">4.2</span> Extended Data Figure
+3b: Differentially expressed genes in Brx-07</h3>
+<p>Bar plot showing the number of differentially expressed genes in
+Brx-07 CTCs over time, comparing cells incubated in static conditions
+(control) and cells circulated through the microfluidic platform (shear
+stress) (bulk RNA-sequencing).</p>
+<pre class="r"><code>dge_table_by_time[[&#39;brx07&#39;]] %&gt;% 
+  pivot_longer(cols = one_of(c(&#39;up&#39;, &#39;down&#39;)), names_to = &#39;set&#39;, values_to = &#39;genes&#39;) %&gt;% 
+  mutate(
+    time = factor(time, levels = names(time_palette)),
+    set = factor(set, levels = c(&#39;up&#39;, &#39;down&#39;))) %&gt;% 
+  ggplot(aes(time, genes, fill = set)) +
+  geom_col() +
+  scale_fill_manual(values = c(up = brewer.pal(n = 11, name =&quot;BrBG&quot;)[3], down = brewer.pal(n = 11, name =&quot;BrBG&quot;)[9])) +
+  labs(
+    x = &#39;Time (minutes)&#39;,
+    y = &#39;Number of gene&#39;,
+    fill = &#39;&#39;,
+    title = &#39;Number of significant genes by time&#39;,
+    caption = paste(&quot;Adjusted P value &lt;&quot;, p_thrs)
+  )</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-time-summary-barplot-brx07-1.png" width="2100" style="display: block; margin: auto;" /></p>
+</div>
+<div
+id="extended-data-figure-3c-differentially-expressed-genes-in-brx-50"
+class="section level3" number="4.3">
+<h3><span class="header-section-number">4.3</span> Extended Data Figure
+3c: Differentially expressed genes in Brx-50</h3>
+<p>Bar plot showing the number of differentially expressed genes in
+Brx-50 CTCs over time, comparing cells incubated in static conditions
+(control) and cells circulated through the microfluidic platform (shear
+stress) (bulk RNA-sequencing).</p>
+<pre class="r"><code>dge_table_by_time[[&#39;brx50&#39;]] %&gt;% 
+  pivot_longer(cols = one_of(c(&#39;up&#39;, &#39;down&#39;)), names_to = &#39;set&#39;, values_to = &#39;genes&#39;) %&gt;% 
+  mutate(
+    time = factor(time, levels = names(time_palette)),
+    set = factor(set, levels = c(&#39;up&#39;, &#39;down&#39;))) %&gt;% 
+  ggplot(aes(time, genes, fill = set)) +
+  geom_col() +
+  scale_fill_manual(values = c(up = brewer.pal(n = 11, name =&quot;BrBG&quot;)[3], down = brewer.pal(n = 11, name =&quot;BrBG&quot;)[9])) +
+  labs(
+    x = &#39;Time (minutes)&#39;,
+    y = &#39;Number of gene&#39;,
+    fill = &#39;&#39;,
+    title = &#39;Number of significant genes by time&#39;,
+    caption = paste(&quot;Adjusted P value &lt;&quot;, p_thrs)
+  )</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-time-summary-barplot-brx50-1.png" width="2100" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="figure-1b-heatmap-of-differential-expressed-genes"
+class="section level2" number="5">
+<h2><span class="header-section-number">5</span> Figure 1b: Heatmap of
+differential expressed genes</h2>
+<p>Heatmap showing row-normalized expression levels of differentially
+expressed genes (adjusted P value &lt; 0.01, n = 6’982) for indicated
+CTC cell lines, between samples incubated in static conditions (control)
+and samples circulated through the microfluidic platform (shear stress)
+for varying durations. Annotated genes represent cytochrome P450 and AHR
+pathway related genes associated with xenobiotic response elements.</p>
+<!-- Main heatmap -->
+<pre class="r"><code>zmat &lt;- zmat_topgenes
+
+# Genes to annotate
+use_genes_annot &lt;- c(&#39;CYP1A1&#39;, &#39;CYP1B1&#39;, &#39;TIPARP&#39;, 
+                     &#39;CYP1A2&#39;, 
+                     &#39;NQO1&#39;, &#39;GSTA2&#39;, &#39;UGT1A1&#39;, &#39;UGT1A6&#39;, &#39;NFE2L2&#39;,
+                     &#39;AHR&#39;, &#39;LRAT&#39;, &#39;IL22&#39;,  &#39;LHX4&#39; )
+
+# Z-score, using mean in Control_0 as scaling factor
+use_cols &lt;- colnames(zmat) %in% colnames(se)[se$group != &#39;Control_0&#39;]
+use_zmat &lt;- zmat[,use_cols]
+use_cols_ord &lt;- colData(se[,colnames(use_zmat)]) %&gt;% data.frame %&gt;% 
+  arrange(condition, time, donor) %&gt;% pull(sample_alias)
+use_zmat &lt;- use_zmat[,use_cols_ord]
+
+
+# Select only samples from Chip
+chip_samples &lt;- colData(se[,colnames(use_zmat)]) %&gt;% 
+  data.frame %&gt;% 
+  filter(condition == &#39;Chip&#39;) %&gt;% 
+  pull(sample_alias)
+use_zmat &lt;- use_zmat[,chip_samples]
+
+
+
+# Set heatmap color limiting the range matrix
+zlim &lt;- c(-2, 2)
+zmax &lt;- range(use_zmat) %&gt;% abs %&gt;% max()
+col_fun &lt;-  colorRamp2(
+  c(-zmax, seq(zlim[1], zlim[2], length.out = 7), zmax),
+  rev(brewer.pal(n = 9, name =&quot;RdBu&quot;)))
+
+# Mark annotation
+rownames(use_zmat) &lt;- rowData(se[rownames(use_zmat),])$gene_name
+use_genes_annot &lt;- intersect(use_genes_annot, rownames(use_zmat))
+row_mark_anno &lt;-  rowAnnotation(
+  foo = anno_mark(at = match(use_genes_annot, rownames(use_zmat)), 
+                  labels = use_genes_annot,
+                  labels_gp = gpar(fontsize = 3),
+                  lines_gp = gpar(lwd = 0.5),
+                  link_width = unit(3, &quot;mm&quot;))
+  )
+
+
+
+# Column annotation
+column_ha &lt;- HeatmapAnnotation(
+  model = colData(se[,colnames(use_zmat)])$donor,
+  col = list(model = alpha(donor_palette, 0.8)),
+  # height = unit(5, &quot;mm&quot;),
+  simple_anno_size = unit(1, &quot;mm&quot;),
+  show_annotation_name = FALSE,
+  show_legend = FALSE
+    # annotation_legend_param = list(title_gp = gpar(fontsize = 5),
+  #                                labels_gp = gpar(fontsize = 5),
+  #                                grid_width = unit(0.15, &quot;cm&quot;),
+  #                                title = &#39;&#39;)
+  )
+
+
+
+# Print the final heatmap
+Heatmap(
+  use_zmat, 
+  name = &#39;z\nscore&#39;,
+  col =  col_fun,
+  
+  right_annotation = row_mark_anno,
+  top_annotation = column_ha,
+  
+  cluster_columns = FALSE,
+  show_row_names = FALSE, 
+  show_column_names = FALSE,
+  row_title = NULL, # remove to see if row split names are equal to those added at left_annotation
+  row_dend_reorder = TRUE,
+  show_row_dend = FALSE,
+  # row_split = row_split,
+  column_split = se[,colnames(use_zmat)]$time,
+  column_gap = unit(0.5, &quot;mm&quot;),
+  border = TRUE,
+  border_gp = gpar(col = &quot;black&quot;, lwd = 0.5),
+  
+  column_names_gp = gpar(fontsize = 6),
+  # heatmap_legend_param = list(title_gp = gpar(fontsize = 5), 
+  #                             labels_gp = gpar(fontsize = 5),
+  #                             grid_width = unit(0.15, &quot;cm&quot;)),
+  column_title_gp = gpar(fontsize = 6),
+  
+  use_raster = TRUE,
+  show_heatmap_legend = FALSE
+  )</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-summary-heatmap-plot-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<!-- Legend -->
+<pre class="r"><code>ht_legend &lt;-  Legend(col_fun = col_fun,
+              title = &quot;z\nscore&quot;,
+              title_gp = gpar(fontsize = 5),
+              labels_gp = gpar(fontsize = 5)
+              )
+
+column_ha_legend &lt;-  Legend(labels = names(donor_palette), 
+              legend_gp = gpar(fill = alpha(donor_palette, 0.8)), 
+              title = &quot;&quot;,
+              # nrow = 1,
+              title_gp = gpar(fontsize = 5),
+              labels_gp = gpar(fontsize = 5)
+              # grid_width = unit(0.15, &quot;cm&quot;)
+              )
+
+pd &lt;-  packLegend(ht_legend, column_ha_legend, max_width = unit(10, &quot;cm&quot;), 
+                  row_gap = unit(5, &quot;mm&quot;))
+draw(pd)</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-summary-heatmap-plot-legends-v-1.png" width="1200" style="display: block; margin: auto;" /></p>
+</div>
+<div id="figure-1d-time-series-of-log2fc" class="section level2"
+number="6">
+<h2><span class="header-section-number">6</span> Figure 1d: Time-series
+of log2FC</h2>
+<p>Fold-change of cytochrome (CYP) P450 pathway related genes (upper),
+and AHR pathway related genes (lower) over time in samples upon
+incubation in static conditions (control) and samples circulated through
+the microfluidic platform (shear stress) across the indicated CTC cell
+lines.</p>
+<div id="cyp-450-genes" class="section level3" number="6.1">
+<h3><span class="header-section-number">6.1</span> CYP-450 genes</h3>
+<pre class="r"><code>use_linewidth &lt;- 1/2.141959
+# use_genes_annot &lt;- c(&#39;CYP1A1&#39;, &#39;CYP1B1&#39;, &#39;TIPARP&#39;, 
+#                      &#39;CYP1A2&#39;, 
+#                      &#39;NQO1&#39;, &#39;GSTA2&#39;, &#39;UGT1A1&#39;, &#39;UGT1A6&#39;, &#39;NFE2L2&#39;,
+#                       &#39;AHR&#39;, &#39;LRAT&#39;, &#39;IL22&#39;,  &#39;LHX4&#39; )
+
+use_genes_annot &lt;- c(&#39;CYP1A1&#39;, &#39;CYP1B1&#39;)
+use_palette &lt;- get_scater_palette(&#39;tableau20&#39;)[seq_along(use_genes_annot)] %&gt;% 
+  set_names(use_genes_annot)
+
+x &lt;- dge_df %&gt;% 
+  filter(gene_name %in% use_genes_annot) %&gt;% 
+  mutate(
+    time = as.numeric(time),
+    padj = ifelse(is.na(padj), 1, padj),
+    padj = ifelse(padj &lt; 1e-10, 1e-10, padj),
+    log_padj = -log10(padj)
+  )
+
+
+x_breaks &lt;- x$time %&gt;% as.character %&gt;% as.numeric %&gt;% sort %&gt;% unique
+y_range &lt;- x$log2FoldChange %&gt;% range
+y_lim &lt;- c(floor(y_range[1]), ceiling(y_range[2]))
+
+# Add time 0
+add_time0 &lt;- x %&gt;% 
+  group_by(donor, gene_name) %&gt;% 
+  summarise(time = 0) %&gt;% 
+  mutate(
+    log2FoldChange = 0,
+    log_padj = 0
+  )
+
+x &lt;- rbind(
+  x %&gt;% 
+    select(donor, gene_name, time, log2FoldChange, log_padj),
+  add_time0
+  )
+
+
+donor_levels &lt;- x$donor %&gt;% unique()
+plots_list &lt;- foreach(use_donor = donor_levels) %do% {
+  x_ends &lt;- x %&gt;% filter(time == 480 &amp; donor == use_donor)
+  
+  x %&gt;% 
+    filter(donor == use_donor) %&gt;%
+    ggplot(aes(time, log2FoldChange, color = gene_name,
+               group = gene_name, size = log_padj)) +
+    geom_point() +
+    geom_line(linewidth = use_linewidth) +
+    geom_hline(
+      yintercept = 0, 
+      linetype = &#39;dashed&#39;, 
+      color = &#39;grey&#39;, 
+      linewidth = use_linewidth) +
+    scale_color_manual(values = use_palette) +
+    scale_size_continuous(
+      range = c(0.2, 1),
+      limits = x$log_padj %&gt;% range
+      ) +
+    scale_x_continuous(
+        expand = expansion(mult = c(0, 0.05)),
+        breaks = c(0, x_breaks)
+        ) + 
+    scale_y_continuous(
+      expand = expansion(mult = c(0.01, 0)),
+      limits = y_lim,
+      sec.axis = dup_axis(
+        breaks = x_ends$log2FoldChange,
+        labels = x_ends$gene_name,
+        name = NULL)
+    ) +
+    theme(
+      axis.line.y.right = element_blank(),
+      axis.ticks.y.right = element_blank(),
+      axis.text.y.right = element_text(size = 4, margin = margin(0, 0, 0, 0)),
+      
+      axis.ticks.y.left = element_line(color = &quot;black&quot;, linewidth = use_linewidth),
+      axis.ticks.x = element_line(color = &quot;black&quot;, linewidth = use_linewidth),
+      axis.line.x = element_line(color = &quot;black&quot;, linewidth = use_linewidth),
+      axis.line.y.left = element_line(color = &quot;black&quot;, linewidth = use_linewidth),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      # axis.text = element_text(size = 6),
+      # legend.text = element_text(size = 6), 
+      # legend.title = element_text(size = 6),
+      
+      # plot.margin = margin(14, 7, 3, 1.5),
+      plot.margin = margin(0, 0, 0, 0),
+      
+    ) +
+    guides(color = &#39;none&#39;) +
+    labs(
+        x = &#39;Time (minutes)&#39;,
+        size = expression(paste(&quot;lo&quot;, g[10],&quot;(FDR)&quot;)),
+        title = use_donor
+      ) +
+    ylab(NULL)
+}
+
+# Shared legend: extract the legend from one of the plots
+legend &lt;- get_legend(
+  # create some space to the left of the legend
+  plots_list[[1]] + theme(legend.box.margin = margin(0, 0, 0, 12))
+)
+
+# Remove legends from plots
+plots_list &lt;- foreach(p = plots_list) %do% {
+  p + theme(legend.position = &quot;none&quot;)
+}
+
+# Add y lab to first plot
+plots_list[[1]] &lt;- plots_list[[1]] + ylab(expression(paste(&quot;lo&quot;, g[2],&quot;(Fold change)&quot;)))
+
+# Generate drid of plots
+prow &lt;- plot_grid(plotlist = plots_list, 
+          align = &#39;vh&#39;,
+          hjust = -1,
+          nrow = 1)
+
+# Generate final
+plot_grid(prow, legend, rel_widths = c(3, .4))</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gene_candidates-fc-time-cyp-plot-1.png" width="2988" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># Generate final without legend
+plot_grid(plotlist = plots_list, 
+          align = &#39;vh&#39;,
+          hjust = -1,
+          nrow = 1)</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gene_candidates-fc-time-cyp-plot-2.png" width="2988" style="display: block; margin: auto;" /></p>
+</div>
+<div id="ahr-targeting-genes-genes" class="section level3" number="6.2">
+<h3><span class="header-section-number">6.2</span> AhR targeting genes
+genes</h3>
+<pre class="r"><code>use_linewidth &lt;- 1/2.141959
+use_genes_annot &lt;- c(&#39;TIPARP&#39;,
+                     &#39;NQO1&#39;, &#39;GSTA2&#39;, &#39;UGT1A1&#39;, &#39;UGT1A6&#39;, &#39;NFE2L2&#39;,
+                        &#39;AHR&#39;, &#39;LRAT&#39;, &#39;IL22&#39;,  &#39;LHX4&#39; )
+
+use_palette &lt;- get_scater_palette(&#39;tableau20&#39;)[seq_along(use_genes_annot)] %&gt;% 
+  set_names(use_genes_annot)
+
+x &lt;- dge_df %&gt;% 
+  filter(gene_name %in% use_genes_annot) %&gt;% 
+  mutate(
+    time = as.numeric(time),
+    padj = ifelse(is.na(padj), 1, padj),
+    padj = ifelse(padj &lt; 1e-10, 1e-10, padj),
+    log_padj = -log10(padj)
+  )
+
+
+x_breaks &lt;- x$time %&gt;% as.character %&gt;% as.numeric %&gt;% sort %&gt;% unique
+y_range &lt;- x$log2FoldChange %&gt;% range
+y_lim &lt;- c(floor(y_range[1]), ceiling(y_range[2]))
+
+# Add time 0
+add_time0 &lt;- x %&gt;% 
+  group_by(donor, gene_name) %&gt;% 
+  summarise(time = 0) %&gt;% 
+  mutate(
+    log2FoldChange = 0,
+    log_padj = 0
+  )
+
+x &lt;- rbind(
+  x %&gt;% 
+    select(donor, gene_name, time, log2FoldChange, log_padj),
+  add_time0
+  )
+
+
+donor_levels &lt;- x$donor %&gt;% unique()
+plots_list &lt;- foreach(use_donor = donor_levels) %do% {
+  x_ends &lt;- x %&gt;% filter(time == 480 &amp; donor == use_donor)
+  
+  x %&gt;% 
+    filter(donor == use_donor) %&gt;%
+    ggplot(aes(time, log2FoldChange, color = gene_name,
+               group = gene_name, size = log_padj)) +
+    geom_point() +
+    geom_line(linewidth = use_linewidth) +
+    geom_hline(
+      yintercept = 0, 
+      linetype = &#39;dashed&#39;, 
+      color = &#39;grey&#39;, 
+      linewidth = use_linewidth) +
+    scale_color_manual(values = use_palette) +
+    scale_size_continuous(
+      range = c(0.2, 1),
+      limits = x$log_padj %&gt;% range
+      ) +
+    scale_x_continuous(
+        expand = expansion(mult = c(0, 0.05)),
+        breaks = c(0, x_breaks)
+        ) + 
+    scale_y_continuous(
+      expand = expansion(mult = c(0.01, 0)),
+      limits = y_lim,
+      sec.axis = dup_axis(
+        breaks = x_ends$log2FoldChange,
+        labels = x_ends$gene_name,
+        name = NULL)
+    ) +
+    theme(
+      axis.line.y.right = element_blank(),
+      axis.ticks.y.right = element_blank(),
+      axis.text.y.right = element_text(size = 4, margin = margin(0, 0, 0, 0)),
+      
+      axis.ticks.y.left = element_line(color = &quot;black&quot;, linewidth = use_linewidth),
+      axis.ticks.x = element_line(color = &quot;black&quot;, linewidth = use_linewidth),
+      axis.line.x = element_line(color = &quot;black&quot;, linewidth = use_linewidth),
+      axis.line.y.left = element_line(color = &quot;black&quot;, linewidth = use_linewidth),
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      # axis.text = element_text(size = 6),
+      # legend.text = element_text(size = 6), 
+      # legend.title = element_text(size = 6),
+      
+      # plot.margin = margin(14, 7, 3, 1.5),
+      plot.margin = margin(0, 0, 0, 0),
+      
+    ) +
+    guides(color = &#39;none&#39;) +
+    labs(
+        x = &#39;Time (minutes)&#39;,
+        size = expression(paste(&quot;lo&quot;, g[10],&quot;(FDR)&quot;)),
+        title = use_donor
+      ) +
+    ylab(NULL)
+}
+
+# Shared legend: extract the legend from one of the plots
+legend &lt;- get_legend(
+  # create some space to the left of the legend
+  plots_list[[1]] + theme(legend.box.margin = margin(0, 0, 0, 12))
+)
+
+# Remove legends from plots
+plots_list &lt;- foreach(p = plots_list) %do% {
+  p + theme(legend.position = &quot;none&quot;)
+}
+
+# Add y lab to first plot
+plots_list[[1]] &lt;- plots_list[[1]] + ylab(expression(paste(&quot;lo&quot;, g[2],&quot;(Fold change)&quot;)))
+
+# Generate drid of plots
+prow &lt;- plot_grid(plotlist = plots_list, 
+          align = &#39;vh&#39;,
+          hjust = -1,
+          nrow = 1)
+
+# Generate final
+plot_grid(prow, legend, rel_widths = c(3, .4))</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gene_candidates-fc-time-ahr-plot-1.png" width="2988" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div
+id="figure-2c-and-extended-data-figure-3d-functional-enrichment-analysis"
+class="section level2" number="7">
+<h2><span class="header-section-number">7</span> Figure 2c and Extended
+Data Figure 3d: Functional Enrichment analysis</h2>
+<pre class="r"><code>test_type &lt;- &#39;GSEA&#39;
+gset_collection &lt;- &#39;msigdb.c2.cp&#39;
+p_thrs &lt;- 0.0001
+n_split &lt;- 10
+
+
+# Combine all results, selecting top_n gene sets per analysis
+comb_gse &lt;- foreach(donor = names(time_gse_omnibus), .combine = rbind) %do% {
+  foreach(tm = names(time_gse_omnibus[[donor]]), .combine = rbind) %do% {
+    time_gse_omnibus[[donor]][[tm]][[test_type]][[gset_collection]]@result %&gt;% 
+      mutate(time = tm)
+  } %&gt;% 
+    mutate(donor = donor)
+} %&gt;% 
+  mutate(time = factor(time, levels = levels(se$time)))
+
+# Keep only reactome and kegg and WP, removing overlapping pathways
+comb_gse %&lt;&gt;% 
+  filter(grepl(&#39;REACTOME|KEGG|WP_&#39;, ID)) %&gt;% 
+  filter(!ID %in% &#39;KEGG_TRYPTOPHAN_METABOLISM&#39;) %&gt;% 
+  filter(!ID %in% &#39;WP_GLUCURONIDATION&#39;) %&gt;% 
+  filter(!ID %in% &#39;WP_MAPK_SIGNALING_PATHWAY&#39;) %&gt;% 
+  mutate(
+    Description = clean_msigdb_names(Description),
+    ID = clean_msigdb_names(ID)
+  )
+
+# Generate similarity matrix:
+  # We combine all significant gene sets for each timepoint. To do so, we remove the duplicated gene sets by selecting the one with the lowest adjusted P value. Then we update the list of core genes by combining all the genes from all the comparisons. Finally, we run the enrichplot::pairwise_termsim function to calculate the similarity matrix.
+fake_gseaResult &lt;-  time_gse_omnibus[[1]][[1]][[test_type]][[gset_collection]]
+# Select comparisons with the lowest adjusted P value
+top_by_time_pthrs &lt;-  comb_gse %&gt;% 
+  filter(p.adjust &lt; p_thrs) %&gt;% 
+  arrange(p.adjust) %&gt;% 
+  filter(!duplicated(ID))
+rownames(top_by_time_pthrs) &lt;- NULL
+top_by_time_pthrs %&lt;&gt;% mutate(torow = ID) %&gt;% column_to_rownames(&#39;torow&#39;)
+# Update the list of core genes by combining all the genes from all the comparisons.
+combine_core_enrichment &lt;- foreach(i = top_by_time_pthrs$ID) %do% {
+  comb_gse %&gt;% filter(ID == i) %&gt;% 
+    pull(core_enrichment) %&gt;% 
+    paste0(., collapse = &#39;/&#39;) %&gt;% 
+    strsplit(., &#39;/&#39;) %&gt;% 
+    unlist %&gt;% 
+    unique %&gt;% paste(.,collapse = &#39;/&#39;)
+} %&gt;% unlist()
+names(combine_core_enrichment) &lt;- top_by_time_pthrs$ID
+top_by_time_pthrs$core_enrichment &lt;- combine_core_enrichment[ top_by_time_pthrs$ID]
+fake_gseaResult@result &lt;- top_by_time_pthrs
+#Generate similarity matrix
+fake_gseaResult &lt;- pairwise_termsim(fake_gseaResult)
+
+similarity_matrix &lt;- fake_gseaResult@termsim
+# Transform matrix to symmetric
+use_mat &lt;- similarity_matrix
+for(x in rownames(use_mat)){
+  for(y in colnames(use_mat)) {
+    if(x == y) {
+       use_mat[x,y] &lt;- 1
+    } else {
+      max_sim &lt;- max(c(use_mat[x,y], use_mat[y,x]), na.rm = TRUE)
+      use_mat[x,y] &lt;- max_sim
+      use_mat[y,x] &lt;- max_sim
+    }
+  }
+}
+rownames(use_mat) &lt;- clean_msigdb_names(rownames(use_mat))
+colnames(use_mat) &lt;- clean_msigdb_names(colnames(use_mat))
+
+# Cluster the similarity matrix
+# Use the ward.D method to avoid overlapping ancestor nodes of each group
+hc &lt;- hclust(
+  as.dist(1- use_mat),
+  method = &#39;ward.D&#39;
+)
+split &lt;- cutree(hc, k=n_split) %&gt;% data.frame %&gt;% set_names(&#39;cluster&#39;)
+split$curated_id &lt;- clean_msigdb_names(rownames(split))
+
+# We add cluster number 11. Based on GSEa results, clsuter 10 have two different groups of gene sets (Up and Down)
+split %&lt;&gt;% 
+  mutate(
+    cluster = ifelse(
+      curated_id %in% c(&#39;SYNTHESIS OF DNA&#39;, &#39;ORC1 REMOVAL FROM CHROMATIN&#39;, &#39;ANTIGEN PROCESSING CROSS PRESENTATION&#39;),
+      11,
+      cluster
+    )
+  )
+
+# Annotate clusters.  For each cluster, sort the genesets by GeneRatio and P.adjust, and select the top ones
+fake_gseaResult@result %&lt;&gt;% 
+  left_join(split %&gt;% rownames_to_column(&#39;ID&#39;))
+# foreach(i = unique(split$cluster), .combine = rbind) %do% {
+#   top_generatio &lt;- fake_gseaResult@result %&gt;%
+#     filter(cluster == i) %&gt;%
+#     arrange(desc(GeneRatio)) %&gt;%
+#     head(1) %&gt;%
+#     pull(ID) %&gt;%
+#     clean_msigdb_names
+#   top_padj &lt;- fake_gseaResult@result %&gt;%
+#     filter(cluster == i) %&gt;%
+#     arrange(p.adjust) %&gt;%
+#     head(1) %&gt;%
+#     pull(ID) %&gt;%
+#     clean_msigdb_names
+#   c(cluster = i, GeneRatio = top_generatio, p.adjust = top_padj)
+# }
+
+# Manually annotate clusters, using top gene sets per cluster as guide
+# fake_gseaResult@result %&gt;% filter(cluster == &#39;1&#39;) %&gt;% select(ID, NES, p.adjust, GeneRatio, core_enrichment)
+split$cluster_name &lt;- case_when(
+  split$cluster == 1 ~ &#39;NGF-stimulated transcription&#39;,
+  split$cluster == 2 ~ &#39;AhR pathway and Oxidative stress response&#39;,
+  split$cluster == 3 ~ &#39;Inflammation / Cytokines signaling&#39;,
+  split$cluster == 4 ~ &#39;Metabolism of xenobiotics by Cytochrome P450 / Glucuronidation&#39;,
+  split$cluster == 5 ~ &#39;Interferon signaling&#39;,
+  split$cluster == 6 ~ &#39;Cytochrome P450-Catalyzed Oxidations&#39;,
+  split$cluster == 7 ~ &#39;Translation&#39;,
+  split$cluster == 8 ~ &#39;Heat shock response&#39;,
+  split$cluster == 9 ~ &#39;HSF1 activation&#39;,
+  split$cluster == 10 ~ &#39;KEAP1-NFE2L2 pathway&#39;,
+  split$cluster == 11 ~ &#39;Other&#39;,
+  TRUE ~ &#39;Other&#39;
+)
+split %&lt;&gt;% 
+  mutate(
+    cluster_fct = factor(cluster, levels = as.character(1:n_split)),
+    cluster_name =  fct_reorder(cluster_name, cluster)
+  )
+
+relevel_clusters &lt;- c(
+  &#39;AhR pathway and Oxidative stress response&#39;,
+  &#39;Metabolism of xenobiotics by Cytochrome P450 / Glucuronidation&#39;,
+  &#39;Cytochrome P450-Catalyzed Oxidations&#39;,
+  &#39;HSF1 activation&#39;,
+  &#39;Heat shock response&#39;,
+  &#39;KEAP1-NFE2L2 pathway&#39;,
+  &#39;Inflammation / Cytokines signaling&#39;,
+  &#39;NGF-stimulated transcription&#39;,
+  &#39;Translation&#39;,
+  &#39;Interferon signaling&#39;,
+  &#39;Other&#39;
+)
+
+
+
+
+# We select significant gene sets in all test (donor, time)
+top_all &lt;- comb_gse %&gt;% 
+  filter(p.adjust &lt; p_thrs) %&gt;% 
+  pull(ID) %&gt;% unique
+
+res_top &lt;- comb_gse %&gt;% 
+  filter(ID %in% top_all) %&gt;% 
+  left_join(split, by = c(&#39;ID&#39; = &#39;curated_id&#39;))</code></pre>
+<div id="extended-data-figure-2d" class="section level3" number="7.1">
+<h3><span class="header-section-number">7.1</span> Extended Data Figure
+2d</h3>
+<p>Gene set enrichment analysis (GSEA) plots for representative gene
+sets in BR16, Brx-07 and Brx-50 CTC lines across circulation time
+points. NES, normalized enrichment score; FDR, false discovery rate.</p>
+<pre class="r"><code>use_linewidth &lt;- 1/2.141959
+
+res_top %&gt;% 
+  mutate(
+    p.sig = p.adjust &lt; 0.05,
+    p.adjust = -log10( p.adjust),
+    cluster_name = factor(cluster_name, levels = relevel_clusters)
+    ) %&gt;% 
+  ggplot(aes(time, Description, fill = NES, color = p.sig, size = p.adjust)) +
+  geom_point(shape = 21, stroke = 0.1) +
+  facet_grid(cols = vars(donor), rows = vars(cluster_name),
+             scale = &#39;free&#39;, space = &#39;free&#39;,
+             labeller = label_wrap_gen(20) ) +
+  scale_fill_distiller(palette = &quot;RdBu&quot;, na.value = &quot;grey70&quot;) +
+  scale_color_manual(values = c(&#39;white&#39;, &#39;black&#39;)) +
+  scale_y_discrete(labels = default_labeller(50)) +
+  scale_size_continuous(range=c(0.1, 0.9)) +
+  labs(y = &#39;&#39;, 
+       x = &#39;&#39;,  
+       size = expression(paste(&quot;lo&quot;, g[10],&quot;(FDR)&quot;)),
+       color = &#39;FDR &lt; 0.05&#39;
+       ) +
+  theme(
+    text = element_text(size = 4),
+    axis.line = element_blank(),
+    # axis.ticks.y = element_blank(),
+    axis.ticks.y = element_line(linewidth = use_linewidth/2),
+    axis.ticks.x = element_line(linewidth = use_linewidth/2),
+    panel.border = element_rect(color = &quot;black&quot;, fill = NA, linewidth = use_linewidth),
+   
+    strip.background = element_blank(),
+    axis.text.y = element_text(size = 2),
+    axis.text.x = element_text(size = 3, angle = 45, hjust = 1),
+    legend.text = element_text(size = 2),
+    legend.title = element_text(size = 2),
+    legend.key.width = unit(0.1, &quot;cm&quot;),
+    
+    strip.text.y = element_text(size = 2, angle = 0, hjust = 0),
+    panel.spacing = unit(0.07, &quot;lines&quot;)
+  )</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gse-omnibus-time-dotplot-c2cp-time-plot-full-1.png" width="1800" style="display: block; margin: auto;" /></p>
+</div>
+<div id="figure-2c" class="section level3" number="7.2">
+<h3><span class="header-section-number">7.2</span> Figure 2c</h3>
+<p>Gene set enrichment analysis (GSEA) plots for representative gene
+sets in indicated CTC cell lines across time points of circulation
+through the microfluidic platform (shear stress) compared to incubation
+in static conditions (control). NES, normalized enrichment score; FDR,
+false discovery rate.</p>
+<pre class="r"><code>use_linewidth &lt;- 1/2.141959
+
+selected_gene_sets &lt;- c(
+  &#39;AhR pathway&#39; = &#39;2873 ARYL HYDROCARBON RECEPTOR PATHWAY&#39;,
+  &#39;Oxidative stress&#39; = &#39;OXIDATIVE STRESS RESPONSE&#39;,
+  &#39;Metabolism of xenobiotics by Cytochrome P450&#39; = &quot;METABOLISM OF XENOBIOTICS BY CYTOCHROME P450&quot;,
+  &#39;Glucuronidation&#39; = &#39;GLUCURONIDATION&#39;,
+  &#39;Cytochrome P450-Catalyzed Oxidations&#39; = &quot;OXIDATION BY CYTOCHROME P450&quot;,
+  &#39;HSF1 activation&#39; = &#39;HSF1 ACTIVATION&#39;,
+  &#39;Heat shock response&#39; = &quot;CELLULAR RESPONSE TO HEAT STRESS&quot;,
+  &#39;KEAP1-NFE2L2 pathway&#39; = &quot;KEAP1 NFE2L2 PATHWAY&quot;,
+  &#39;Cytokines signaling&#39; = &quot;TGFBETA SIGNALING PATHWAY&quot;,
+  &#39;NGF-stimulated transcription&#39; = &quot;NGF STIMULATED TRANSCRIPTION&quot;,
+  &#39;Translation&#39; = &quot;EUKARYOTIC TRANSLATION INITIATION&quot;,
+  &#39;Interferon signaling&#39; = &quot;INTERFERON SIGNALING&quot;
+) %&gt;% data.frame %&gt;% set_names(&#39;Description&#39;) %&gt;% rownames_to_column(&#39;group_name&#39;)
+
+res_top %&gt;% 
+  left_join(selected_gene_sets, by = &#39;Description&#39;) %&gt;%
+  filter(!is.na(group_name)) %&gt;% 
+  mutate(
+    p.sig = p.adjust &lt; 0.05,
+    p.adjust = -log10( p.adjust),
+    group_name = factor(group_name, levels = rev(selected_gene_sets$group_name))
+    ) %&gt;% 
+  ggplot(aes(time, group_name, fill = NES, color = p.sig, size = p.adjust)) +
+  geom_point(shape = 21, stroke = 0.1) +
+  facet_grid(cols = vars(donor),
+             scale = &#39;free&#39;, space = &#39;free&#39;) +
+  scale_fill_distiller(palette = &quot;RdBu&quot;, na.value = &quot;grey70&quot;) +
+  scale_color_manual(values = c(&#39;white&#39;, &#39;black&#39;)) +
+  scale_y_discrete(labels = default_labeller(30)) +
+  scale_size_continuous(range=c(0.7, 2)) +
+  labs(y = &#39;&#39;, 
+       x = &#39;Time (minutes)&#39;,  
+       size = expression(paste(&quot;lo&quot;, g[10],&quot;(FDR)&quot;)),
+       color = &#39;FDR &lt; 0.05&#39;
+       ) +
+  theme(
+    text = element_text(size = 4),
+    axis.line = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.ticks.x = element_line(linewidth = use_linewidth/2),
+    panel.border = element_rect(color = &quot;black&quot;, fill = NA, linewidth = use_linewidth),
+   
+    strip.background = element_blank(),
+    # axis.text.y = element_blank(),
+    axis.text.y = element_text(size = 4),
+    axis.text.x = element_text(size = 4, angle = 90, vjust = 0.5, hjust = 1),
+    legend.text = element_text(size = 2),
+    legend.title = element_text(size = 2),
+    legend.key.width = unit(0.1, &quot;cm&quot;),
+    
+    panel.spacing = unit(0.04, &quot;lines&quot;)
+  )</code></pre>
+<p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gse-omnibus-time-dotplot-c2cp-time-plot-representative-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<p>R version 4.2.2 (2022-10-31) Platform: x86_64-apple-darwin17.0
+(64-bit) Running under: macOS Big Sur … 10.16</p>
+<p>Matrix products: default BLAS:
+/Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRblas.0.dylib
+LAPACK:
+/Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRlapack.dylib</p>
+<p>locale: [1]
+en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</p>
+<p>attached base packages: [1] stats4 grid stats graphics grDevices
+utils datasets [8] methods base</p>
+<p>other attached packages: [1] enrichplot_1.18.3
+geomtextpath_0.1.4.9000<br />
+[3] patchwork_1.1.3 apeglm_1.20.0<br />
+[5] PCAtools_2.10.0 pheatmap_1.0.12<br />
+[7] scran_1.26.2 scuttle_1.8.4<br />
+[9] SingleCellExperiment_1.20.0 DESeq2_1.38.3<br />
+[11] edgeR_3.40.2 limma_3.54.1<br />
+[13] SummarizedExperiment_1.28.0 Biobase_2.58.0<br />
+[15] GenomicRanges_1.50.2 GenomeInfoDb_1.34.9<br />
+[17] IRanges_2.32.0 S4Vectors_0.36.1<br />
+[19] BiocGenerics_0.44.0 MatrixGenerics_1.10.0<br />
+[21] matrixStats_1.0.0 openxlsx_4.2.5.2<br />
+[23] circlize_0.4.15 ComplexHeatmap_2.14.0<br />
+[25] ggrepel_0.9.4 ggbeeswarm_0.7.2<br />
+[27] RColorBrewer_1.1-3 kableExtra_1.3.4<br />
+[29] knitr_1.44 DT_0.30<br />
+[31] colorblindr_0.1.0 colorspace_2.1-1<br />
+[33] cowplot_1.1.1 glue_1.8.0<br />
+[35] ggtext_0.1.2 ggupset_0.3.0.9002<br />
+[37] showtext_0.9-6 showtextdb_3.0<br />
+[39] sysfonts_0.8.8 foreach_1.5.2<br />
+[41] magrittr_2.0.3 forcats_1.0.0<br />
+[43] dplyr_1.1.4 purrr_1.0.2<br />
+[45] readr_2.1.4 tidyr_1.3.1<br />
+[47] tibble_3.2.1 ggplot2_3.5.0<br />
+[49] workflowr_1.7.1</p>
+<p>loaded via a namespace (and not attached): [1] utf8_1.2.4
+tidyselect_1.2.1<br />
+[3] RSQLite_2.3.1 AnnotationDbi_1.60.0<br />
+[5] htmlwidgets_1.6.2 BiocParallel_1.32.5<br />
+[7] scatterpie_0.2.1 munsell_0.5.1<br />
+[9] ScaledMatrix_1.6.0 codetools_0.2-19<br />
+[11] statmod_1.5.0 withr_3.0.1<br />
+[13] GOSemSim_2.24.0 rstudioapi_0.15.0<br />
+[15] DOSE_3.24.2 labeling_0.4.3<br />
+[17] git2r_0.32.0 bbmle_1.0.25<br />
+[19] GenomeInfoDbData_1.2.9 polyclip_1.10-6<br />
+[21] farver_2.1.2 bit64_4.0.5<br />
+[23] rprojroot_2.0.3 treeio_1.22.0<br />
+[25] coda_0.19-4 vctrs_0.6.5<br />
+[27] generics_0.1.3 xfun_0.40<br />
+[29] R6_2.5.1 doParallel_1.0.17<br />
+[31] graphlayouts_1.0.1 clue_0.3-65<br />
+[33] rsvd_1.0.5 locfit_1.5-9.8<br />
+[35] gridGraphics_0.5-1 fgsea_1.24.0<br />
+[37] bitops_1.0-7 cachem_1.0.8<br />
+[39] DelayedArray_0.24.0 promises_1.2.1<br />
+[41] scales_1.3.0 ggraph_2.1.0<br />
+[43] beeswarm_0.4.0 gtable_0.3.5<br />
+[45] beachmat_2.14.0 Cairo_1.6-1<br />
+[47] processx_3.8.2 tidygraph_1.2.3<br />
+[49] rlang_1.1.4 systemfonts_1.1.0<br />
+[51] splines_4.2.2 GlobalOptions_0.1.2<br />
+[53] lazyeval_0.2.2 yaml_2.3.7<br />
+[55] reshape2_1.4.4 httpuv_1.6.8<br />
+[57] qvalue_2.30.0 gridtext_0.1.5<br />
+[59] tools_4.2.2 ggplotify_0.1.2<br />
+[61] jquerylib_0.1.4 Rcpp_1.0.13<br />
+[63] plyr_1.8.9 sparseMatrixStats_1.10.0 [65] zlibbioc_1.44.0
+RCurl_1.98-1.12<br />
+[67] ps_1.7.5 viridis_0.6.4<br />
+[69] GetoptLong_1.0.5 cluster_2.1.4<br />
+[71] fs_1.6.4 magick_2.7.3<br />
+[73] data.table_1.14.8 mvtnorm_1.2-3<br />
+[75] whisker_0.4.1 hms_1.1.3<br />
+[77] evaluate_0.22 xtable_1.8-4<br />
+[79] HDO.db_0.99.1 XML_3.99-0.14<br />
+[81] emdbook_1.3.13 gridExtra_2.3<br />
+[83] shape_1.4.6 compiler_4.2.2<br />
+[85] bdsmatrix_1.3-6 shadowtext_0.1.2<br />
+[87] crayon_1.5.2 htmltools_0.5.6.1<br />
+[89] ggfun_0.1.3 later_1.3.1<br />
+[91] tzdb_0.4.0 aplot_0.2.2<br />
+[93] geneplotter_1.76.0 DBI_1.1.3<br />
+[95] tweenr_2.0.2 MASS_7.3-60<br />
+[97] Matrix_1.5-3 cli_3.6.3<br />
+[99] parallel_4.2.2 metapod_1.6.0<br />
+[101] igraph_1.5.1 pkgconfig_2.0.3<br />
+[103] getPass_0.2-2 numDeriv_2016.8-1.1<br />
+[105] xml2_1.3.5 ggtree_3.4.4<br />
+[107] svglite_2.1.2 annotate_1.76.0<br />
+[109] vipor_0.4.5 bslib_0.5.1<br />
+[111] dqrng_0.3.1 webshot_0.5.5<br />
+[113] XVector_0.38.0 rvest_1.0.3<br />
+[115] yulab.utils_0.1.7 stringr_1.5.1<br />
+[117] callr_3.7.3 digest_0.6.37<br />
+[119] Biostrings_2.66.0 fastmatch_1.1-4<br />
+[121] rmarkdown_2.25 tidytree_0.4.2<br />
+[123] DelayedMatrixStats_1.20.0 rjson_0.2.21<br />
+[125] nlme_3.1-163 lifecycle_1.0.4<br />
+[127] jsonlite_1.8.7 BiocNeighbors_1.16.0<br />
+[129] viridisLite_0.4.2 fansi_1.0.6<br />
+[131] pillar_1.9.0 lattice_0.20-45<br />
+[133] KEGGREST_1.38.0 fastmap_1.1.1<br />
+[135] httr_1.4.7 GO.db_3.16.0<br />
+[137] zip_2.3.0 png_0.1-8<br />
+[139] iterators_1.0.14 bluster_1.8.0<br />
+[141] bit_4.0.5 ggforce_0.4.1<br />
+[143] stringi_1.8.4 sass_0.4.7<br />
+[145] blob_1.2.4 textshaping_0.4.0<br />
+[147] BiocSingular_1.14.0 memoise_2.0.1<br />
+[149] ape_5.7-1 irlba_2.3.5.1</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4,h5",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
