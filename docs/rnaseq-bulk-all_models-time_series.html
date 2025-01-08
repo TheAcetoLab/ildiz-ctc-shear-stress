@@ -534,15 +534,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstree6323a09f22396a178e0f471eea4e283cdec07244targetblank6323a09a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstreecaff916b846504b2f06d801872f4744d73a7b70ftargetblankcaff916a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/6323a09f22396a178e0f471eea4e283cdec07244" target="_blank">6323a09</a>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/caff916b846504b2f06d801872f4744d73a7b70f" target="_blank">caff916</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstree6323a09f22396a178e0f471eea4e283cdec07244targetblank6323a09a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstreecaff916b846504b2f06d801872f4744d73a7b70ftargetblankcaff916a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -552,7 +552,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/6323a09f22396a178e0f471eea4e283cdec07244" target="_blank">6323a09</a>.
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/caff916b846504b2f06d801872f4744d73a7b70f" target="_blank">caff916</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -634,6 +634,40 @@ Message
 Rmd
 </td>
 <td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/caff916b846504b2f06d801872f4744d73a7b70f/analysis/rnaseq-bulk-all_models-time_series.Rmd" target="_blank">caff916</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+<td>
+add bulk and low-input RNA-seq analysis
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/TheAcetoLab/ildiz-ctc-shear-stress/24f2abe093fa70f13c52677069f8219d05df868f/docs/rnaseq-bulk-all_models-time_series.html" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
 <a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/6323a09f22396a178e0f471eea4e283cdec07244/analysis/rnaseq-bulk-all_models-time_series.Rmd" target="_blank">6323a09</a>
 </td>
 <td>
@@ -707,6 +741,14 @@ library(apeglm)
 library(patchwork)
 library(geomtextpath)
 library(enrichplot)</code></pre>
+<p>Clean files generated in previous runs</p>
+<pre class="r"><code>rmd_file &lt;- current_input()
+if(!is.null(rmd_file)) {
+  figures_dir &lt;- file.path(&#39;./docs/figure&#39;,rmd_file)
+  if(dir.exists(figures_dir)) {
+    unlink(file.path(figures_dir, &quot;*&quot;))
+  }
+}</code></pre>
 <p>Load ggplot theme</p>
 <pre class="r"><code>source(&quot;./configuration/rmarkdown/ggplot_theme.R&quot;)</code></pre>
 <p>Set color palettes</p>
@@ -1051,6 +1093,44 @@ and cells circulated through the microfluidic platform (shear stress)
     caption = paste(&quot;Adjusted P value &lt;&quot;, p_thrs)
   )</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-time-summary-barplot-br16-1.png" width="2100" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-dge-deseq2-lrt-time-summary-barplot-br16-1">
+Past versions of dge-deseq2-lrt-time-summary-barplot-br16-1.png
+</button>
+</p>
+<div id="fig-dge-deseq2-lrt-time-summary-barplot-br16-1"
+class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-time-summary-barplot-br16-1.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div
 id="extended-data-figure-3b-differentially-expressed-genes-in-brx-07"
@@ -1077,6 +1157,44 @@ stress) (bulk RNA-sequencing).</p>
     caption = paste(&quot;Adjusted P value &lt;&quot;, p_thrs)
   )</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-time-summary-barplot-brx07-1.png" width="2100" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-dge-deseq2-lrt-time-summary-barplot-brx07-1">
+Past versions of dge-deseq2-lrt-time-summary-barplot-brx07-1.png
+</button>
+</p>
+<div id="fig-dge-deseq2-lrt-time-summary-barplot-brx07-1"
+class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-time-summary-barplot-brx07-1.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div
 id="extended-data-figure-3c-differentially-expressed-genes-in-brx-50"
@@ -1103,6 +1221,44 @@ stress) (bulk RNA-sequencing).</p>
     caption = paste(&quot;Adjusted P value &lt;&quot;, p_thrs)
   )</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-time-summary-barplot-brx50-1.png" width="2100" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-dge-deseq2-lrt-time-summary-barplot-brx50-1">
+Past versions of dge-deseq2-lrt-time-summary-barplot-brx50-1.png
+</button>
+</p>
+<div id="fig-dge-deseq2-lrt-time-summary-barplot-brx50-1"
+class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-time-summary-barplot-brx50-1.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 </div>
 <div id="figure-1b-heatmap-of-differential-expressed-genes"
@@ -1208,6 +1364,43 @@ Heatmap(
   show_heatmap_legend = FALSE
   )</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-summary-heatmap-plot-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-dge-deseq2-lrt-summary-heatmap-plot-1">
+Past versions of dge-deseq2-lrt-summary-heatmap-plot-1.png
+</button>
+</p>
+<div id="fig-dge-deseq2-lrt-summary-heatmap-plot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-summary-heatmap-plot-1.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <!-- Legend -->
 <pre class="r"><code>ht_legend &lt;-  Legend(col_fun = col_fun,
               title = &quot;z\nscore&quot;,
@@ -1228,6 +1421,44 @@ pd &lt;-  packLegend(ht_legend, column_ha_legend, max_width = unit(10, &quot;cm&
                   row_gap = unit(5, &quot;mm&quot;))
 draw(pd)</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-summary-heatmap-plot-legends-v-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-dge-deseq2-lrt-summary-heatmap-plot-legends-v-1">
+Past versions of dge-deseq2-lrt-summary-heatmap-plot-legends-v-1.png
+</button>
+</p>
+<div id="fig-dge-deseq2-lrt-summary-heatmap-plot-legends-v-1"
+class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/dge-deseq2-lrt-summary-heatmap-plot-legends-v-1.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="figure-1d-time-series-of-log2fc" class="section level2"
 number="6">
@@ -1362,12 +1593,86 @@ prow &lt;- plot_grid(plotlist = plots_list,
 # Generate final
 plot_grid(prow, legend, rel_widths = c(3, .4))</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gene_candidates-fc-time-cyp-plot-1.png" width="2988" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-gene_candidates-fc-time-cyp-plot-1">
+Past versions of gene_candidates-fc-time-cyp-plot-1.png
+</button>
+</p>
+<div id="fig-gene_candidates-fc-time-cyp-plot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/gene_candidates-fc-time-cyp-plot-1.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <pre class="r"><code># Generate final without legend
 plot_grid(plotlist = plots_list, 
           align = &#39;vh&#39;,
           hjust = -1,
           nrow = 1)</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gene_candidates-fc-time-cyp-plot-2.png" width="2988" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-gene_candidates-fc-time-cyp-plot-2">
+Past versions of gene_candidates-fc-time-cyp-plot-2.png
+</button>
+</p>
+<div id="fig-gene_candidates-fc-time-cyp-plot-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/gene_candidates-fc-time-cyp-plot-2.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="ahr-targeting-genes-genes" class="section level3" number="6.2">
 <h3><span class="header-section-number">6.2</span> AhR targeting genes
@@ -1492,6 +1797,43 @@ prow &lt;- plot_grid(plotlist = plots_list,
 # Generate final
 plot_grid(prow, legend, rel_widths = c(3, .4))</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gene_candidates-fc-time-ahr-plot-1.png" width="2988" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-gene_candidates-fc-time-ahr-plot-1">
+Past versions of gene_candidates-fc-time-ahr-plot-1.png
+</button>
+</p>
+<div id="fig-gene_candidates-fc-time-ahr-plot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/gene_candidates-fc-time-ahr-plot-1.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 </div>
 <div
@@ -1700,6 +2042,44 @@ res_top %&gt;%
     panel.spacing = unit(0.07, &quot;lines&quot;)
   )</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gse-omnibus-time-dotplot-c2cp-time-plot-full-1.png" width="1800" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-gse-omnibus-time-dotplot-c2cp-time-plot-full-1">
+Past versions of gse-omnibus-time-dotplot-c2cp-time-plot-full-1.png
+</button>
+</p>
+<div id="fig-gse-omnibus-time-dotplot-c2cp-time-plot-full-1"
+class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/gse-omnibus-time-dotplot-c2cp-time-plot-full-1.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="figure-2c" class="section level3" number="7.2">
 <h3><span class="header-section-number">7.2</span> Figure 2c</h3>
@@ -1764,6 +2144,45 @@ res_top %&gt;%
     panel.spacing = unit(0.04, &quot;lines&quot;)
   )</code></pre>
 <p><img src="figure/rnaseq-bulk-all_models-time_series.Rmd/gse-omnibus-time-dotplot-c2cp-time-plot-representative-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-gse-omnibus-time-dotplot-c2cp-time-plot-representative-1">
+Past versions of
+gse-omnibus-time-dotplot-c2cp-time-plot-representative-1.png
+</button>
+</p>
+<div id="fig-gse-omnibus-time-dotplot-c2cp-time-plot-representative-1"
+class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/24f2abe093fa70f13c52677069f8219d05df868f/docs/figure/rnaseq-bulk-all_models-time_series.Rmd/gse-omnibus-time-dotplot-c2cp-time-plot-representative-1.png" target="_blank">24f2abe</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">

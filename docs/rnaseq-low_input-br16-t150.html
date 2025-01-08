@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Francesc Castro-Giner" />
+
+<meta name="date" content="2025-01-08" />
+
+<title>Analysis of low input RNA-seq for BR16 cells at time 150</title>
+
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.13.2/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/main/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">ctc-shear-stress</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress">
+    <span class="fab fa-github"></span>
+     
+    Source code
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Analysis of low input RNA-seq for BR16
+cells at time 150</h1>
+<h3 class="subtitle">Differential gene expression</h3>
+<h4 class="author">Francesc Castro-Giner</h4>
+<h4 class="date">January 08, 2025</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span>
+workflowr <span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2025-01-08
+</p>
+<p>
+<strong>Checks:</strong> <span
+class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7
+<span class="glyphicon glyphicon-exclamation-sign text-danger"
+aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>ildiz-ctc-shear-stress/</code>
+<span class="glyphicon glyphicon-question-sign" aria-hidden="true"
+title="This is the local directory in which the code in this file was executed.">
+</span>
+</p>
+<p>
+This reproducible <a href="https://rmarkdown.rstudio.com">R Markdown</a>
+analysis was created with <a
+  href="https://github.com/workflowr/workflowr">workflowr</a> (version
+1.7.1). The <em>Checks</em> tab describes the reproducibility checks
+that were applied when the results were created. The <em>Past
+versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date
+</a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git
+repository, you know the exact version of the code that produced these
+results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the
+global environment can affect the analysis in your R Markdown file in
+unknown ways. For reproduciblity it’s best to always run the code in an
+empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20250108code">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Seed:</strong>
+<code>set.seed(20250108)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20250108code"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20250108)</code> was run prior to running
+the code in the R Markdown file. Setting a seed ensures that any results
+that rely on randomness, e.g. subsampling or permutations, are
+reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Session information:</strong>
+recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package
+versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be
+confident that you successfully produced the results during this
+run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr
+project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstreecaff916b846504b2f06d801872f4744d73a7b70ftargetblankcaff916a">
+<span class="glyphicon glyphicon-ok text-success"
+aria-hidden="true"></span> <strong>Repository version:</strong>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/caff916b846504b2f06d801872f4744d73a7b70f" target="_blank">caff916</a>
+</a>
+</p>
+</div>
+<div
+id="strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstreecaff916b846504b2f06d801872f4744d73a7b70ftargetblankcaff916a"
+class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development
+and connecting the code version to the results is critical for
+reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/caff916b846504b2f06d801872f4744d73a7b70f" target="_blank">caff916</a>.
+See the <em>Past versions</em> tab to see a history of the changes made
+to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for
+the analysis have been committed to Git prior to generating the results
+(you can use <code>wflow_publish</code> or
+<code>wflow_git_commit</code>). workflowr only checks the R Markdown
+file, but you know if there are other scripts or data files that it
+depends on. Below is the status of the Git repository when the results
+were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+    Ignored:    data/differential_expression/
+    Ignored:    data/resources/
+    Ignored:    data/rnaseq/
+
+Untracked files:
+    Untracked:  analysis/rnaseq-bulk-br16-time_series.Rmd
+    Untracked:  analysis/rnaseq-bulk-brx07-time_series.Rmd
+    Untracked:  analysis/rnaseq-bulk-brx50-time_series.Rmd
+    Untracked:  code/R-functions/
+    Untracked:  configuration/
+    Untracked:  output/rnaseq/
+
+Unstaged changes:
+    Modified:   .gitignore
+    Modified:   ildiz-ctc-shear-stress.Rproj
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not
+included in this status report because it is ok for generated content to
+have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+<p>
+These are the previous versions of the repository in which changes were
+made to the R Markdown
+(<code>analysis/rnaseq-low_input-br16-t150.Rmd</code>) and HTML
+(<code>docs/rnaseq-low_input-br16-t150.html</code>) files. If you’ve
+configured a remote Git repository (see <code>?wflow_git_remote</code>),
+click on the hyperlinks in the table below to view the files as they
+were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/caff916b846504b2f06d801872f4744d73a7b70f/analysis/rnaseq-low_input-br16-t150.Rmd" target="_blank">caff916</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+<td>
+add bulk and low-input RNA-seq analysis
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<div id="load-libraries-additional-functions-and-data"
+class="section level2" number="1">
+<h2><span class="header-section-number">1</span> Load libraries,
+additional functions and data</h2>
+<p>Setup environment</p>
+<pre class="r"><code>knitr::opts_chunk$set(results=&#39;asis&#39;, echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.align = &#39;center&#39;, fig.width = 3.5, fig.asp = 0.618, dpi = 600, dev = c(&quot;png&quot;, &quot;pdf&quot;), engine.opts = list(bash = &quot;-l&quot;))
+
+options(stringsAsFactors = FALSE)
+
+use_seed &lt;- 1100101
+set.seed(use_seed)
+
+
+dir.create(params$output_dir, recursive = TRUE, showWarnings = FALSE)</code></pre>
+<p>Load packages</p>
+<pre class="r"><code>library(tidyverse)
+library(showtext)
+library(foreach)
+library(DT)
+library(knitr)
+library(kableExtra)
+library(cowplot)
+library(colorblindr)
+library(RColorBrewer)
+library(ggbeeswarm)
+library(ggrepel)
+library(magrittr)
+library(openxlsx)
+library(ggrepel)
+
+library(SummarizedExperiment)
+library(edgeR)
+library(DESeq2)
+library(scuttle)
+library(scran)
+library(pheatmap)
+library(PCAtools)
+library(org.Hs.eg.db)
+library(ComplexHeatmap)
+library(circlize)
+library(UpSetR)
+library(enrichplot)
+library(DOSE)</code></pre>
+<p>Clean files generated in previous runs</p>
+<pre class="r"><code>rmd_file &lt;- current_input()
+if(!is.null(rmd_file)) {
+  figures_dir &lt;- file.path(&#39;./docs/figure&#39;,rmd_file)
+  if(dir.exists(figures_dir)) {
+    unlink(file.path(figures_dir, &quot;*&quot;))
+  }
+}</code></pre>
+<p>Load ggplot theme</p>
+<pre class="r"><code>source(&quot;./configuration/rmarkdown/ggplot_theme.R&quot;)</code></pre>
+<p>Set color palettes</p>
+<p>Load custom functions</p>
+<pre class="r"><code>source(&#39;./code/R-functions/dge_wrappers.r&#39;)
+source(&#39;./code/R-functions/dge_report.r&#39;)
+source(&#39;./code/R-functions/gse_omnibus.r&#39;)
+source(&#39;./code/R-functions/gse_report.r&#39;)
+clean_msigdb_names &lt;- function(x) x %&gt;% gsub(&#39;REACTOME_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;WP_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;BIOCARTA_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;KEGG_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;PID_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;GOBP_&#39;, &#39;&#39;, .) %&gt;% gsub(&#39;_&#39;, &#39; &#39;, .) %&gt;% str_to_sentence</code></pre>
+<p>Define additional functions</p>
+<pre class="r"><code>clean_sample_alias &lt;- function(x) 
+  gsub(&#39;o[0-9]*_[0-9]*-|_cDNA.*|_gDNA.*|_S.*_R1_001|ESI_&#39;, &#39;&#39;, x)</code></pre>
+<p>Define functions for GSEA running score plot, using the original
+function from enrichplot package</p>
+<pre class="r"><code>##&#39; extract gsea result of selected geneSet
+##&#39;
+##&#39;
+##&#39; @title gsInfo
+##&#39; @param object gseaResult object
+##&#39; @param geneSetID gene set ID
+##&#39; @return data.frame
+##&#39; @author Guangchuang Yu
+## @export
+gsInfo &lt;- function(object, geneSetID) {
+    geneList &lt;- object@geneList
+
+    if (is.numeric(geneSetID))
+        geneSetID &lt;- object@result[geneSetID, &quot;ID&quot;]
+
+    geneSet &lt;- object@geneSets[[geneSetID]]
+    exponent &lt;- object@params[[&quot;exponent&quot;]]
+    df &lt;- gseaScores(geneList, geneSet, exponent, fortify=TRUE)
+    df$ymin &lt;- 0
+    df$ymax &lt;- 0
+    pos &lt;- df$position == 1
+    h &lt;- diff(range(df$runningScore))/20
+    df$ymin[pos] &lt;- -h
+    df$ymax[pos] &lt;- h
+    df$geneList &lt;- geneList
+
+    df$Description &lt;- object@result[geneSetID, &quot;Description&quot;]
+    return(df)
+}
+
+gseaScores &lt;- getFromNamespace(&quot;gseaScores&quot;, &quot;DOSE&quot;)
+
+gseaplot &lt;- function (x, geneSetID, by = &quot;all&quot;, title = &quot;&quot;,
+                                 color=&#39;black&#39;, color.line=&quot;green&quot;,
+                                 color.vline=&quot;#FA5860&quot;, ...){
+    by &lt;- match.arg(by, c(&quot;runningScore&quot;, &quot;preranked&quot;, &quot;all&quot;))
+    gsdata &lt;- gsInfo(x, geneSetID)
+    p &lt;- ggplot(gsdata, aes_(x = ~x)) +
+        theme_dose() + xlab(&quot;Position in the Ranked List of Genes&quot;)
+    if (by == &quot;runningScore&quot; || by == &quot;all&quot;) {
+        p.res &lt;- p + geom_linerange(aes_(ymin=~ymin, ymax=~ymax), color=color)
+        p.res &lt;- p.res + geom_line(aes_(y = ~runningScore), color=color.line,
+                                   size=1)
+        enrichmentScore &lt;- x@result[geneSetID, &quot;enrichmentScore&quot;]
+        es.df &lt;- data.frame(es = which.min(abs(p$data$runningScore - enrichmentScore)))
+        p.res &lt;- p.res + geom_vline(data = es.df, aes_(xintercept = ~es),
+                                    colour = color.vline, linetype = &quot;dashed&quot;)
+        p.res &lt;- p.res + ylab(&quot;Running Enrichment Score&quot;)
+        p.res &lt;- p.res + geom_hline(yintercept = 0)
+    }
+    if (by == &quot;preranked&quot; || by == &quot;all&quot;) {
+        df2 &lt;- data.frame(x = which(p$data$position == 1))
+        df2$y &lt;- p$data$geneList[df2$x]
+        p.pos &lt;- p + geom_segment(data=df2, aes_(x=~x, xend=~x, y=~y, yend=0),
+                                  color=color)
+        p.pos &lt;- p.pos + ylab(&quot;Ranked List Metric&quot;) +
+            xlim(0, length(p$data$geneList))
+    }
+    if (by == &quot;runningScore&quot;)
+        return(p.res + ggtitle(title))
+    if (by == &quot;preranked&quot;)
+        return(p.pos + ggtitle(title))
+
+    p.pos &lt;- p.pos + xlab(NULL) + theme(axis.text.x = element_blank(),
+                                        axis.ticks.x = element_blank())
+    p.pos &lt;- p.pos + ggtitle(title) +
+        theme(plot.title=element_text(hjust=0.5, size=rel(2)))
+    plot_grid(p.pos, p.res, ncol=1, align=&quot;v&quot;)
+}
+
+
+gseaplot2 &lt;- function(x, geneSetID, title = &quot;&quot;, color=&quot;green&quot;, base_size = 11,
+                      rel_heights=c(1.5, .5, 1), subplots = 1:3,
+                      pvalue_table = FALSE, ES_geom=&quot;line&quot;, ES_line_size = 1,
+                      p2_rect_alpha = 0.9, linerange_alpha = 1, linerange_width = 1) {
+    ES_geom &lt;- match.arg(ES_geom, c(&quot;line&quot;, &quot;dot&quot;))
+
+    geneList &lt;- position &lt;- NULL ## to satisfy codetool
+
+    if (length(geneSetID) == 1) {
+        gsdata &lt;- gsInfo(x, geneSetID)
+    } else {
+        gsdata &lt;- do.call(rbind, lapply(geneSetID, gsInfo, object = x))
+    }
+
+    p &lt;- ggplot(gsdata, aes_(x = ~x)) + xlab(NULL) +
+        theme_classic(base_size) +
+        theme(#panel.grid.major = element_line(colour = &quot;grey92&quot;),
+              #panel.grid.minor = element_line(colour = &quot;grey92&quot;),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.grid.major.y = element_blank(),
+              panel.grid.minor.y = element_blank()) +
+        scale_x_continuous(expand=c(0,0))
+
+    if (ES_geom == &quot;line&quot;) {
+        es_layer &lt;- geom_line(aes_(y = ~runningScore, color= ~Description),
+                              size=ES_line_size)
+    } else {
+        es_layer &lt;- geom_point(aes_(y = ~runningScore, color= ~Description),
+                               size=1, data = subset(gsdata, position == 1))
+    }
+
+    p.res &lt;- p + es_layer +
+        theme(legend.position = c(.8, .8), legend.title = element_blank(),
+              legend.background = element_rect(fill = &quot;transparent&quot;))
+
+    p.res &lt;- p.res + ylab(&quot;Running Enrichment Score&quot;) +
+        theme(axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              axis.line.x=element_blank(),
+              plot.margin=margin(t=.2, r = .2, b=0, l=.2, unit=&quot;cm&quot;))
+
+    i &lt;- 0
+    for (term in unique(gsdata$Description)) {
+        idx &lt;- which(gsdata$ymin != 0 &amp; gsdata$Description == term)
+        gsdata[idx, &quot;ymin&quot;] &lt;- i
+        gsdata[idx, &quot;ymax&quot;] &lt;- i + 1
+        i &lt;- i + 1
+    }
+    p2 &lt;- ggplot(gsdata, aes_(x = ~x)) +
+        geom_linerange(aes_(ymin=~ymin, ymax=~ymax, color=~Description,
+                            alpha = linerange_alpha),
+                       linewidth = linerange_width) +
+        xlab(NULL) + ylab(NULL) + theme_classic(base_size) +
+        theme(legend.position = &quot;none&quot;,
+              plot.margin = margin(t=-.1, b=0,unit=&quot;cm&quot;),
+              axis.ticks = element_blank(),
+              axis.text = element_blank(),
+              axis.line.x = element_blank()) +
+        scale_x_continuous(expand=c(0,0)) +
+        scale_y_continuous(expand=c(0,0))
+
+    if (length(geneSetID) == 1) {
+        ## geneList &lt;- gsdata$geneList
+        ## j &lt;- which.min(abs(geneList))
+        ## v1 &lt;- quantile(geneList[1:j], seq(0,1, length.out=6))[1:5]
+        ## v2 &lt;- quantile(geneList[j:length(geneList)], seq(0,1, length.out=6))[1:5]
+
+        ## v &lt;- sort(c(v1, v2))
+        ## inv &lt;- findInterval(geneList, v)
+
+        v &lt;- seq(1, sum(gsdata$position), length.out=9)
+        inv &lt;- findInterval(rev(cumsum(gsdata$position)), v)
+        if (min(inv) == 0) inv &lt;- inv + 1
+
+        col &lt;- c(rev(brewer.pal(5, &quot;Blues&quot;)), brewer.pal(5, &quot;Reds&quot;))
+
+        ymin &lt;- min(p2$data$ymin)
+        yy &lt;- max(p2$data$ymax - p2$data$ymin) * .3
+        xmin &lt;- which(!duplicated(inv))
+        xmax &lt;- xmin + as.numeric(table(inv)[as.character(unique(inv))])
+        d &lt;- data.frame(ymin = ymin, ymax = yy,
+                        xmin = xmin,
+                        xmax = xmax,
+                        col = col[unique(inv)])
+        p2 &lt;- p2 + geom_rect(
+                       aes_(xmin=~xmin,
+                            xmax=~xmax,
+                            ymin=~ymin,
+                            ymax=~ymax,
+                            fill=~I(col)),
+                       data=d,
+                       alpha=p2_rect_alpha,
+                       inherit.aes=FALSE)
+    }
+
+    ## p2 &lt;- p2 +
+    ## geom_rect(aes(xmin=x-.5, xmax=x+.5, fill=geneList),
+    ##           ymin=ymin, ymax = ymin + yy, alpha=.5) +
+    ## theme(legend.position=&quot;none&quot;) +
+    ## scale_fill_gradientn(colors=color_palette(c(&quot;blue&quot;, &quot;red&quot;)))
+
+    df2 &lt;- p$data #data.frame(x = which(p$data$position == 1))
+    df2$y &lt;- p$data$geneList[df2$x]
+    p.pos &lt;- p + geom_segment(data=df2, aes_(x=~x, xend=~x, y=~y, yend=0),
+                              color=&quot;grey&quot;)
+    p.pos &lt;- p.pos + 
+      # ylab(&quot;Ranked List Metric&quot;) +
+      ylab(expression(paste(&quot;lo&quot;, g[2],&quot;(Fold change)&quot;)))+
+        xlab(&quot;Rank in Ordered Dataset&quot;) +
+        theme(plot.margin=margin(t = -.1, r = .2, b=.2, l=.2, unit=&quot;cm&quot;))
+
+    if (!is.null(title) &amp;&amp; !is.na(title) &amp;&amp; title != &quot;&quot;)
+        p.res &lt;- p.res + ggtitle(title)
+
+    if (length(color) == length(geneSetID)) {
+        p.res &lt;- p.res + scale_color_manual(values=color)
+        if (length(color) == 1) {
+            p.res &lt;- p.res + theme(legend.position = &quot;none&quot;)
+            p2 &lt;- p2 + scale_color_manual(values = &quot;black&quot;)
+        } else {
+            p2 &lt;- p2 + scale_color_manual(values = color)
+        }
+    }
+
+    if (pvalue_table) {
+        pd &lt;- x[geneSetID, c(&quot;Description&quot;, &quot;pvalue&quot;, &quot;p.adjust&quot;)]
+        # pd &lt;- pd[order(pd[,1], decreasing=FALSE),]
+        rownames(pd) &lt;- pd$Description
+
+        pd &lt;- pd[,-1]
+        pd &lt;- round(pd, 4)
+
+        tp &lt;- tableGrob2(pd, p.res)
+
+        p.res &lt;- p.res + theme(legend.position = &quot;none&quot;) +
+            annotation_custom(tp,
+                              xmin = quantile(p.res$data$x, .5),
+                              xmax = quantile(p.res$data$x, .95),
+                              ymin = quantile(p.res$data$runningScore, .75),
+                              ymax = quantile(p.res$data$runningScore, .9))
+    }
+
+    plotlist &lt;- list(p.res, p2, p.pos)[subplots]
+    n &lt;- length(plotlist)
+    plotlist[[n]] &lt;- plotlist[[n]] +
+        theme(axis.line.x = element_line(),
+              axis.ticks.x=element_line(),
+              axis.text.x = element_text())
+
+    if (length(subplots) == 1)
+        return(plotlist[[1]] + theme(plot.margin=margin(t=.2, r = .2, b=.2,
+                                                        l=.2, unit=&quot;cm&quot;)))
+
+    if (length(rel_heights) &gt; length(subplots))
+        rel_heights &lt;- rel_heights[subplots]
+
+    plot_grid(plotlist = plotlist, ncol=1, align=&quot;v&quot;, rel_heights=rel_heights)
+}</code></pre>
+<p>Load MSigDB files</p>
+<pre class="r"><code>msigdb_vs &lt;- &#39;v2022.1.Hs&#39;
+
+gmt_files_symbols &lt;- list(
+  msigdb.c2.cp = paste0(&#39;./data/resources/MSigDB/&#39;, msigdb_vs, &#39;/c2.cp.&#39;, msigdb_vs, &#39;.symbols.gmt&#39;)
+)</code></pre>
+</div>
+<div id="data-processing" class="section level2" number="2">
+<h2><span class="header-section-number">2</span> Data processing</h2>
+<div id="load-original-data" class="section level3" number="2.1">
+<h3><span class="header-section-number">2.1</span> Load original
+data</h3>
+<pre class="r"><code>se &lt;- readRDS(params$se_file)</code></pre>
+</div>
+<div id="data-wrangling" class="section level3" number="2.2">
+<h3><span class="header-section-number">2.2</span> Data wrangling</h3>
+<p>Filtering out low-abundance features. Keeping those features with at
+least 10 counts in at least 70% of samples of the smallest group.</p>
+<pre class="r"><code># use_rows &lt;- filterByExpr(se, group=paste(se$donor, se$condition), min.count = 10, min.total.count = 15, min.prop = 0.5)
+use_rows &lt;- filterByExpr(se, group=paste(se$donor, se$condition), min.count = 1, min.prop = 0.3)
+se &lt;- se[use_rows,]
+
+# Update PerCellQCMetrics
+colData(se) &lt;- colData(se) %&gt;% data.frame %&gt;% dplyr::select(-(sum:subsets_Ribo_percent)) %&gt;% DataFrame
+se &lt;- addPerCellQCMetrics(
+  se,
+  subsets=list(
+    Mito=which(rowData(se)$is.mito),
+    Ribo=which(rowData(se)$is.ribo)
+  ),
+  percent.top = c(1,5,10,20, 50, 100),
+  threshold = 3
+  )
+
+# # Table of removed features
+# table(use_rows) %&gt;% 
+#   data.frame %&gt;% 
+#   mutate(use_rows = ifelse(use_rows == TRUE, &#39;keep&#39;, &#39;remove&#39;)) %&gt;% 
+#   column_to_rownames(&#39;use_rows&#39;) %&gt;% 
+#   kbl(caption = &#39;Filtered features&#39;) %&gt;%
+#   kable_paper(bootstrap_options = c(&quot;striped&quot;, &quot;hover&quot;, &quot;condensed&quot;), full_width = F)</code></pre>
+<p>TMM normalization</p>
+<pre class="r"><code>norm_method &lt;- &quot;TMM&quot;
+exprs_mat_for_norm &lt;- assay(se, &#39;counts&#39;)
+norm_factors &lt;- calcNormFactors(exprs_mat_for_norm, method = norm_method)
+lib_size &lt;- colSums(exprs_mat_for_norm)/10^6
+se$size_factor &lt;- (norm_factors * lib_size)
+se &lt;- logNormCounts(se, size.factors =se$size_factor)
+se &lt;- logNormCounts(se, size.factors =se$size_factor, log = FALSE)</code></pre>
+</div>
+<div id="list-of-comparisons" class="section level3" number="2.3">
+<h3><span class="header-section-number">2.3</span> List of
+comparisons</h3>
+<pre class="r"><code>x &lt;- colData(se) %&gt;% data.frame
+comp_list &lt;- list(
+  Condition = list(
+    Chip = x %&gt;% 
+      filter(condition == &#39;Chip&#39;) %&gt;% 
+      pull(sample_alias) %&gt;% 
+      sort,
+    Control = x %&gt;% 
+      filter(condition == &#39;Control&#39;) %&gt;% 
+      pull(sample_alias) %&gt;% 
+      sort
+  ),
+  condition_clusters = list(
+    Chip = x %&gt;% 
+      filter(condition == &#39;Chip&#39; &amp; ctc_type == &#39;ctc_cluster&#39;) %&gt;% 
+      pull(sample_alias) %&gt;% 
+      sort,
+    Control = x %&gt;% 
+      filter(condition == &#39;Control&#39; &amp; ctc_type == &#39;ctc_cluster&#39;) %&gt;% 
+      pull(sample_alias) %&gt;% 
+      sort
+  ),
+  condition_singles = list(
+    Chip = x %&gt;% 
+      filter(condition == &#39;Chip&#39; &amp; ctc_type == &#39;ctc_single&#39;) %&gt;% 
+      pull(sample_alias) %&gt;% 
+      sort,
+    Control = x %&gt;% 
+      filter(condition == &#39;Control&#39; &amp; ctc_type == &#39;ctc_single&#39;) %&gt;% 
+      pull(sample_alias) %&gt;% 
+      sort
+  )
+)</code></pre>
+</div>
+</div>
+<div id="data-generation" class="section level2" number="3">
+<h2><span class="header-section-number">3</span> Data generation</h2>
+<div id="differential-expression-analysis" class="section level3"
+number="3.1">
+<h3><span class="header-section-number">3.1</span> Differential
+expression analysis</h3>
+<p>Run differential expression analysis using DESeq</p>
+<pre class="r"><code>use_comp &lt;-  comp_list[[1]]
+
+dge_list &lt;- foreach(use_comp = comp_list) %do%{
+  se_cols &lt;- se$sample_alias %in% unlist(use_comp)
+  use_se &lt;- se[,se_cols]
+  use_se$group &lt;- ifelse(
+    use_se$sample_alias %in% use_comp[[1]],
+    names(use_comp)[1],
+    names(use_comp)[2]
+  )
+  use_se$group &lt;-  factor(use_se$group, 
+                          levels = c(
+                            names(use_comp)[2], 
+                            names(use_comp)[1]))
+  
+  # Generate DESeq dataset
+  dds &lt;- DESeqDataSet(use_se, design = ~ group)
+  dds &lt;- DESeq(dds)
+  
+  # Get gene description for genes in dds
+  httr::set_config(httr::config(ssl_verifypeer = FALSE))
+  ensembl &lt;-  biomaRt::useEnsembl(biomart=&quot;ensembl&quot;, dataset=&quot;hsapiens_gene_ensembl&quot;)
+  gene_desc &lt;- biomaRt::getBM(attributes=c(&#39;ensembl_gene_id&#39;,&#39;description&#39;), filters = &#39;ensembl_gene_id&#39;, values = rownames(dds), mart =ensembl)
+  rownames(gene_desc) &lt;- gene_desc$ensembl_gene_id
+
+  
+  # Extract and annotate results
+  res &lt;- results(dds) %&gt;% data.frame
+  res_lfcs &lt;- lfcShrink(dds, coef=&quot;group_Chip_vs_Control&quot;, type=&quot;apeglm&quot;)
+  res$lfcshrink &lt;- res_lfcs$log2FoldChange
+  res$ensembl_gene_id &lt;- rownames(dds)
+  res$gene_name &lt;- mcols(dds)$gene_name
+  res$gene_type &lt;- mcols(dds)$gene_type
+  res$is.mito &lt;- mcols(dds)$is.mito
+  res$is.ribo &lt;- mcols(dds)$is.ribo
+  res %&lt;&gt;% left_join(gene_desc) %&gt;% mutate(tr = ensembl_gene_id) %&gt;% column_to_rownames(&#39;tr&#39;)
+
+  return(res)
+}
+names(dge_list) &lt;- names(comp_list)
+
+##
+## Interaction Condition : CTC type
+##
+# Generate DESeq dataset
+use_se &lt;- se[,se$ctc_type %in% c(&#39;ctc_single&#39;, &#39;ctc_cluster&#39;)]
+use_se$ctc_type &lt;- factor(use_se$ctc_type,  
+                          levels = c(&#39;ctc_single&#39;, &#39;ctc_cluster&#39;))
+dds &lt;- DESeqDataSet(use_se, 
+                    design = ~ ctc_type + condition + ctc_type:condition)
+dds &lt;- DESeq(dds)
+
+# Get gene description for genes in dds
+httr::set_config(httr::config(ssl_verifypeer = FALSE))
+ensembl &lt;-  biomaRt::useEnsembl(biomart=&quot;ensembl&quot;, dataset=&quot;hsapiens_gene_ensembl&quot;)
+gene_desc &lt;- biomaRt::getBM(
+  attributes=c(&#39;ensembl_gene_id&#39;,&#39;description&#39;),
+  filters = &#39;ensembl_gene_id&#39;, values = rownames(dds), 
+  mart =ensembl)
+rownames(gene_desc) &lt;- gene_desc$ensembl_gene_id
+
+# Extract and annotate results
+# resultsNames(dds)
+res &lt;- results(dds, name=&quot;ctc_typectc_cluster.conditionChip&quot;) %&gt;% 
+  data.frame
+res_lfcs &lt;- lfcShrink(dds, 
+                      coef=&quot;ctc_typectc_cluster.conditionChip&quot;,
+                      type=&quot;apeglm&quot;)
+res$lfcshrink &lt;- res_lfcs$log2FoldChange
+res$ensembl_gene_id &lt;- rownames(dds)
+res$gene_name &lt;- mcols(dds)$gene_name
+res$gene_type &lt;- mcols(dds)$gene_type
+res$is.mito &lt;- mcols(dds)$is.mito
+res$is.ribo &lt;- mcols(dds)$is.ribo
+res %&lt;&gt;% left_join(gene_desc) %&gt;% mutate(tr = ensembl_gene_id) %&gt;% column_to_rownames(&#39;tr&#39;)
+
+dge_list[[&quot;Interaction_Condition_CTC_type&quot;]] &lt;- res
+
+
+##
+## Adjusted by CTC type
+##
+# Generate DESeq dataset
+use_se &lt;- se[,se$ctc_type %in% c(&#39;ctc_single&#39;, &#39;ctc_cluster&#39;)]
+use_se$ctc_type &lt;- factor(use_se$ctc_type,  
+                          levels = c(&#39;ctc_single&#39;, &#39;ctc_cluster&#39;))
+dds &lt;- DESeqDataSet(use_se, 
+                    design = ~ ctc_type + condition)
+dds &lt;- DESeq(dds)
+
+# Get gene description for genes in dds
+httr::set_config(httr::config(ssl_verifypeer = FALSE))
+ensembl &lt;-  biomaRt::useEnsembl(biomart=&quot;ensembl&quot;, dataset=&quot;hsapiens_gene_ensembl&quot;)
+gene_desc &lt;- biomaRt::getBM(
+  attributes=c(&#39;ensembl_gene_id&#39;,&#39;description&#39;),
+  filters = &#39;ensembl_gene_id&#39;, values = rownames(dds), 
+  mart =ensembl)
+rownames(gene_desc) &lt;- gene_desc$ensembl_gene_id
+
+# Extract and annotate results
+# resultsNames(dds)
+res &lt;- results(dds, name=&quot;condition_Chip_vs_Control&quot;) %&gt;% 
+  data.frame
+res_lfcs &lt;- lfcShrink(dds, 
+                      coef=&quot;condition_Chip_vs_Control&quot;,
+                      type=&quot;apeglm&quot;)
+res$lfcshrink &lt;- res_lfcs$log2FoldChange
+res$ensembl_gene_id &lt;- rownames(dds)
+res$gene_name &lt;- mcols(dds)$gene_name
+res$gene_type &lt;- mcols(dds)$gene_type
+res$is.mito &lt;- mcols(dds)$is.mito
+res$is.ribo &lt;- mcols(dds)$is.ribo
+res %&lt;&gt;% left_join(gene_desc) %&gt;% mutate(tr = ensembl_gene_id) %&gt;% column_to_rownames(&#39;tr&#39;)
+
+dge_list[[&quot;condition_batch&quot;]] &lt;- res
+
+
+# Save objects
+saveRDS(dge_list, file = file.path(params$output_dir, &#39;dge-deseq.rds&#39;))
+
+# detach(&quot;package:biomaRt&quot;, unload=TRUE)</code></pre>
+</div>
+<div id="functional-enrichment" class="section level3" number="3.2">
+<h3><span class="header-section-number">3.2</span> Functional
+enrichment</h3>
+<pre class="r"><code>dge_list &lt;- readRDS(file.path(params$output_dir, &#39;dge-deseq.rds&#39;))
+dge &lt;-  dge_list[[1]]
+gse_list &lt;- list()
+gse_list &lt;- foreach(dge = dge_list) %do%{
+  gse_res &lt;- gse_omnibus(
+    feature_names = dge$gene_name,
+    p = dge$padj,
+    fc = dge$log2FoldChange,
+    fc_thrs = 0.5,
+    gmt_files = gmt_files_symbols,
+    run_enricher = TRUE,
+    run_GSEA = TRUE,
+    args_gse = list(minGSSize = 10, maxGSSize = 500, pvalueCutoff = 1)
+    )
+   return(gse_res)
+
+}
+names(gse_list) &lt;- names(dge_list)
+
+# Save objects
+saveRDS(gse_list, file = file.path(params$output_dir,&#39;gse_omnibus-deseq.rds&#39;))</code></pre>
+</div>
+<div id="load-data" class="section level3" number="3.3">
+<h3><span class="header-section-number">3.3</span> Load data</h3>
+<pre class="r"><code>dge_list &lt;- readRDS(file.path(params$output_dir, &#39;dge-deseq.rds&#39;))
+gse_list &lt;- readRDS(file.path(params$output_dir, &#39;gse_omnibus-deseq.rds&#39;))</code></pre>
+</div>
+</div>
+<div id="supplementary-tables" class="section level2" number="4">
+<h2><span class="header-section-number">4</span> Supplementary
+tables</h2>
+<pre class="r"><code># File name summary
+rmd_file &lt;- current_input()
+if(is.null(rmd_file))
+  rmd_file &lt;- &#39;tmp&#39;
+file_xlsx &lt;- file.path(&#39;./docs/file&#39;,rmd_file, &#39;st_3.xlsx&#39;)
+dir.create(dirname(file_xlsx), recursive = TRUE, showWarnings = FALSE)
+
+# Generate workbook
+wb &lt;- createWorkbook()</code></pre>
+<!-- Write DGE results to xlsx file -->
+<pre class="r"><code>use_comp &lt;- c(&quot;condition_batch&quot;, &quot;condition_singles&quot;, &quot;condition_clusters&quot;)
+use_dge_list &lt;- dge_list[use_comp]
+names(use_dge_list) &lt;-c(&quot;DGE - Combined&quot;, &quot;DGE - CTC singles&quot;, &quot;DGE - CTC clusters&quot;)
+for(i in names(use_dge_list)) {
+   addWorksheet(wb, i)
+   res &lt;- use_dge_list[[i]] %&gt;% 
+      dplyr::select(gene_name,
+                    ensembl_gene_id,
+                    gene_type,
+                    log2FoldChange,
+                    pvalue,
+                    padj,
+                    description) %&gt;% 
+      arrange(padj)
+    writeData(wb, i, res)
+}</code></pre>
+<!-- Write GSEA results to xlsx file -->
+<pre class="r"><code>use_comp &lt;- c(&quot;condition_singles&quot;, &quot;condition_clusters&quot;)
+use_gse_list &lt;- gse_list[use_comp]
+names(use_gse_list) &lt;- c(&quot;GSEA - CTC singles&quot;, &quot;GSEA - CTC clusters&quot;)
+
+test_type &lt;- &#39;GSEA&#39;
+gset_collection &lt;- &#39;msigdb.c2.cp&#39;
+
+
+for(i in names(use_gse_list)) {
+   addWorksheet(wb, i)
+   res &lt;- use_gse_list[[i]][[test_type]][[gset_collection]]@result %&gt;%
+      filter(grepl(&#39;REACTOME|KEGG|WP_&#39;, ID)) %&gt;% 
+      filter(!ID %in% &#39;KEGG_TRYPTOPHAN_METABOLISM&#39;) %&gt;% 
+      filter(!ID %in% &#39;WP_GLUCURONIDATION&#39;) %&gt;% 
+      filter(!ID %in% &#39;WP_MAPK_SIGNALING_PATHWAY&#39;) %&gt;% 
+      mutate(
+        Description = clean_msigdb_names(Description)
+      ) %&gt;% 
+      dplyr::select(ID,
+                    Description,
+                    setSize,
+                    NES,
+                    pvalue,
+                    p.adjust,
+                    leading_edge,
+                    Count, 
+                    GeneRatio,
+                    core_enrichment) %&gt;% 
+      arrange(pvalue)
+   
+    writeData(wb, i, res)
+}</code></pre>
+<!-- Write ORA results to xlsx file -->
+<pre class="r"><code>use_comp &lt;- c(&#39;condition_batch&#39;, &quot;condition_singles&quot;, &quot;condition_clusters&quot;)
+use_gse_list &lt;- gse_list[use_comp]
+names(use_gse_list) &lt;- c(&quot;ORA - Combined&quot;, &quot;ORA - CTC singles&quot;, &quot;ORA - CTC clusters&quot;)
+
+test_type &lt;- &#39;enricher&#39;
+gset_collection &lt;- &#39;msigdb.c2.cp&#39;
+
+for(i in names(use_gse_list)) {
+  addWorksheet(wb, i)
+  res &lt;- rbind(
+    use_gse_list[[i]][[test_type]]$up[[gset_collection]]@result %&gt;% 
+      mutate(comp = i, direction = &#39;up&#39;),
+    use_gse_list[[i]][[test_type]]$down[[gset_collection]]@result %&gt;% 
+      mutate(comp = i, direction = &#39;down&#39;)
+  ) %&gt;%
+      filter(grepl(&#39;REACTOME|KEGG|WP_&#39;, ID)) %&gt;% 
+      mutate(
+        Description = clean_msigdb_names(Description)
+      ) %&gt;% 
+      dplyr::select(ID,
+                    Description,
+                    GeneRatio,
+                    BgRatio,
+                    GeneProp,
+                    pvalue,
+                    p.adjust,
+                    direction,
+                    geneID) %&gt;% 
+      arrange(pvalue)
+   
+    writeData(wb, i, res)
+}</code></pre>
+<!-- Write final file -->
+<pre class="r"><code>saveWorkbook(wb, file_xlsx, TRUE)</code></pre>
+<ul>
+<li><a
+href="./file/rnaseq-low_input-br16-t150.Rmd/st_3.xlsx"><strong>Supplementary
+Table 3. Low-input RNA sequencing differential gene expression, gene set
+enrichment analysis (GSEA) and Over Representation analysis (ORA).
+</strong></a> Table listing genes differentially expressed and
+corresponding GSEA gene sets in BR16 single CTCs and CTC clusters in
+samples incubated in static conditions (control) versus circulated
+through the microfluidic platform (shear stress).</li>
+</ul>
+</div>
+<div id="figure-2f-heatmap-of-differential-expressed-genes"
+class="section level2" number="5">
+<h2><span class="header-section-number">5</span> Figure 2f: Heatmap of
+differential expressed genes</h2>
+<p>Heatmap depicting the expression levels of genes showing a distinct
+response to shear stress in BR16 single CTCs and CTC clusters (adjusted
+P value &lt; 0.05). Samples were either incubated in static conditions
+(control) or circulated through the microfluidic platform (shear stress)
+for 2.5 hours.</p>
+<pre class="r"><code>p_thrs &lt;- 0.05</code></pre>
+<div id="single-ctc-chip-over-control" class="section level3"
+number="5.1">
+<h3><span class="header-section-number">5.1</span> Single-CTC: Chip over
+Control</h3>
+<pre class="r"><code>i &lt;- &#39;condition_singles&#39;
+use_ctc_type &lt;- &#39;ctc_single&#39;
+
+x &lt;- dge_list[[i]] %&gt;% filter(padj &lt; p_thrs) %&gt;% 
+  mutate(
+    direction = ifelse(log2FoldChange &gt; 0, &#39;up&#39;, &#39;down&#39;),
+    direction = factor(direction, levels = c(&#39;up&#39;, &#39;down&#39;))
+  )
+
+use_genes &lt;- x %&gt;% rownames
+
+use_samples &lt;- colData(se) %&gt;% 
+  data.frame %&gt;% 
+  filter(ctc_type == use_ctc_type) %&gt;% 
+  pull(sample_alias) %&gt;% sort
+
+
+mat &lt;- assay(se, &#39;logcounts&#39;)[use_genes, use_samples]
+rownames(mat) &lt;- rowData(se)[use_genes, &#39;gene_name&#39;]
+zmat &lt;- t(apply(mat, 1, scale, center = TRUE, scale = TRUE))
+colnames(zmat) &lt;- colnames(mat)
+
+# Set heatmap color (limiting the range matrix)
+zmax &lt;- range(zmat) %&gt;% abs %&gt;% max()
+col_fun &lt;-  colorRamp2(
+  seq(-zmax, zmax, length.out = 9), 
+  rev(brewer.pal(n = 9, name =&quot;RdBu&quot;)))
+
+# Colum Split
+col_split &lt;- colData(se[,colnames(zmat)])[,&#39;condition&#39;]
+
+
+Heatmap(
+  zmat, 
+  
+  # Column characteristics
+  # top_annotation = column_ha,
+  column_split = col_split,
+  column_gap = unit(0.5, &quot;mm&quot;),
+  cluster_column_slices = FALSE,
+  column_dend_reorder = TRUE,
+  show_column_names = FALSE,
+  show_column_dend = FALSE,
+  column_title_gp = gpar(fontsize = 3),
+  
+  # Row characteristics
+  show_row_names = FALSE,
+  show_row_dend = FALSE,
+  row_split = x$direction,
+  cluster_row_slices = FALSE,
+  row_gap = unit(0.5, &quot;mm&quot;),
+  row_title = NULL,
+  
+  # General parameters
+  name = &#39;z\nscore&#39;,
+  col =  col_fun,
+  border = TRUE,
+  border_gp = gpar(col = &quot;black&quot;, lwd = 0.5),
+  heatmap_legend_param = list(title_gp = gpar(fontsize = 5), 
+                              labels_gp = gpar(fontsize = 5),
+                              grid_width = unit(0.15, &quot;cm&quot;)),
+  use_raster = TRUE,
+  show_heatmap_legend = FALSE
+)</code></pre>
+<p><img src="figure/rnaseq-low_input-br16-t150.Rmd/dge-heatmap-single-ctc-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ht_legend &lt;-  Legend(col_fun = col_fun,
+              title = &quot;z\nscore&quot;,
+              title_gp = gpar(fontsize = 5),
+              labels_gp = gpar(fontsize = 5)
+              )
+
+pd &lt;-  packLegend(ht_legend, max_width = unit(10, &quot;cm&quot;), 
+                  row_gap = unit(5, &quot;mm&quot;), direction = &quot;horizontal&quot;)
+draw(pd)</code></pre>
+<p><img src="figure/rnaseq-low_input-br16-t150.Rmd/dge-heatmap--single-ctc-legends-v-1.png" width="1800" style="display: block; margin: auto;" /></p>
+</div>
+<div id="ctc-clusters-chip-over-control" class="section level3"
+number="5.2">
+<h3><span class="header-section-number">5.2</span> CTC clusters: Chip
+over Control</h3>
+<pre class="r"><code>i &lt;- &#39;condition_clusters&#39;
+use_ctc_type &lt;- &#39;ctc_cluster&#39;
+
+x &lt;- dge_list[[i]] %&gt;% filter(padj &lt; p_thrs) %&gt;% 
+  mutate(
+    direction = ifelse(log2FoldChange &gt; 0, &#39;up&#39;, &#39;down&#39;),
+    direction = factor(direction, levels = c(&#39;up&#39;, &#39;down&#39;))
+  )
+
+use_genes &lt;- x %&gt;% rownames
+
+use_samples &lt;- colData(se) %&gt;% 
+  data.frame %&gt;% 
+  filter(ctc_type == use_ctc_type) %&gt;% 
+  pull(sample_alias) %&gt;% sort
+
+
+mat &lt;- assay(se, &#39;logcounts&#39;)[use_genes, use_samples]
+rownames(mat) &lt;- rowData(se)[use_genes, &#39;gene_name&#39;]
+zmat &lt;- t(apply(mat, 1, scale, center = TRUE, scale = TRUE))
+colnames(zmat) &lt;- colnames(mat)
+
+# Set heatmap color (limiting the range matrix)
+zmax &lt;- range(zmat) %&gt;% abs %&gt;% max()
+col_fun &lt;-  colorRamp2(
+  seq(-zmax, zmax, length.out = 9), 
+  rev(brewer.pal(n = 9, name =&quot;RdBu&quot;)))
+
+# Colum Split
+col_split &lt;- colData(se[,colnames(zmat)])[,&#39;condition&#39;]
+
+
+Heatmap(
+  zmat, 
+  
+  # Column characteristics
+  # top_annotation = column_ha,
+  column_split = col_split,
+  column_gap = unit(0.5, &quot;mm&quot;),
+  cluster_column_slices = FALSE,
+  column_dend_reorder = TRUE,
+  show_column_names = FALSE,
+  show_column_dend = FALSE,
+  column_title_gp = gpar(fontsize = 3),
+  # column_title = NULL,
+  
+  # Row characteristics
+  show_row_names = FALSE,
+  show_row_dend = FALSE,
+  row_split = x$direction,
+  cluster_row_slices = FALSE,
+  row_gap = unit(0.5, &quot;mm&quot;),
+  row_title = NULL,
+  
+  # General parameters
+  name = &#39;z\nscore&#39;,
+  col =  col_fun,
+  border = TRUE,
+  border_gp = gpar(col = &quot;black&quot;, lwd = 0.5),
+  heatmap_legend_param = list(title_gp = gpar(fontsize = 5), 
+                              labels_gp = gpar(fontsize = 5),
+                              grid_width = unit(0.15, &quot;cm&quot;)),
+  use_raster = TRUE,
+  show_heatmap_legend = FALSE
+)</code></pre>
+<p><img src="figure/rnaseq-low_input-br16-t150.Rmd/dge-heatmap-cluster-ctc-1.png" width="1200" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ht_legend &lt;-  Legend(col_fun = col_fun,
+              title = &quot;z\nscore&quot;,
+              title_gp = gpar(fontsize = 5),
+              labels_gp = gpar(fontsize = 5)
+              )
+
+pd &lt;-  packLegend(ht_legend, max_width = unit(10, &quot;cm&quot;), 
+                  row_gap = unit(5, &quot;mm&quot;), direction = &quot;horizontal&quot;)
+draw(pd)</code></pre>
+<p><img src="figure/rnaseq-low_input-br16-t150.Rmd/dge-heatmap-cluster-ctc-legends-v-1.png" width="1800" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div
+id="extended-data-figure-4a-scatter-plot-of-fold-change-correlation-in-br16-single-ctcs-and-ctc-clusters"
+class="section level2" number="6">
+<h2><span class="header-section-number">6</span> Extended Data Figure
+4a: Scatter plot of fold change correlation in BR16 single CTCs and CTC
+clusters</h2>
+<p>Scatter plot showing the correlation of fold change in BR16 single
+CTCs and CTC clusters. Points are colored by the adjusted P value
+obtained in the combined analysis of both CTC types.</p>
+<pre class="r"><code>p_thrs &lt;- 0.05
+
+# Genes to annotate
+genes_annot &lt;- c(&#39;CYP1A1&#39;, &#39;CYP1B1&#39;, &#39;TIPARP&#39;, 
+                     &#39;CYP1A2&#39;, 
+                     &#39;NQO1&#39;, &#39;GSTA2&#39;, &#39;UGT1A1&#39;, &#39;UGT1A6&#39;, &#39;NFE2L2&#39;,
+                     &#39;AHR&#39;, &#39;LRAT&#39;, &#39;IL22&#39;,  &#39;LHX4&#39;,
+                     &#39;CDC42&#39;)
+
+dge_cl &lt;- dge_list[[&#39;condition_clusters&#39;]] %&gt;% 
+  dplyr::select(ensembl_gene_id, gene_name, log2FoldChange, padj)
+dge_s &lt;- dge_list[[&#39;condition_singles&#39;]] %&gt;% 
+  dplyr::select(ensembl_gene_id, gene_name, log2FoldChange, padj)
+dge_comb &lt;- dge_list[[&#39;condition_batch&#39;]] %&gt;% 
+  dplyr::select(ensembl_gene_id, gene_name, log2FoldChange, padj) %&gt;% 
+  dplyr::rename(
+    log2FoldChange.comb = log2FoldChange,
+    padj.comb = padj
+  )
+
+use_dge &lt;- full_join(
+  dge_s, 
+  dge_cl, 
+  by = c(&#39;ensembl_gene_id&#39;, &#39;gene_name&#39;),
+  suffix = c(&quot;.s&quot;, &quot;.cl&quot;)
+  ) %&gt;% 
+  full_join(
+    dge_comb, 
+    by = c(&#39;ensembl_gene_id&#39;, &#39;gene_name&#39;)
+  )</code></pre>
+<pre class="r"><code>use_linewidth &lt;- 1/2.141959
+
+use_data &lt;- use_dge %&gt;%
+  filter(!is.na(padj.comb)) %&gt;% 
+  mutate(
+    use_p = ifelse(padj.comb &lt; 1e-10, 1e-10, padj.comb)
+    )
+
+top_10 &lt;- use_data %&gt;% 
+  filter(!is.na(padj.comb)) %&gt;% 
+  arrange(padj.comb) %&gt;% 
+  head(10)
+
+use_data %&gt;% 
+  arrange(desc(use_p)) %&gt;% 
+  ggplot(
+    aes(log2FoldChange.s, 
+        log2FoldChange.cl, 
+        color = -log10(use_p),
+        size = -log10(use_p)
+        )) +
+  geom_point(alpha = 0.7, shape = 16) +
+  geom_abline(lty = 2, linewidth = use_linewidth/2, alpha = 0.5) +
+  # scale_color_distiller(palette = &quot;Purples&quot;, na.value = &quot;grey70&quot;, direction = 1) +
+  scale_color_viridis_c(direction = -1) +
+  # scale_color_gradient2(
+  #   low = &quot;white&quot;, 
+  #   mid = &quot;#feb24c&quot;, 
+  #   high = &quot;brown&quot;, 
+  #   midpoint = -log10(p_thrs)
+  # ) +
+  scale_size_continuous(range = c(0.01, 0.8)) +
+  labs(
+    x = expression(paste(&quot;lo&quot;, g[2],&quot;(Fold change) in Clusters&quot;)),
+    y = expression(paste(&quot;lo&quot;, g[2],&quot;(Fold change) in Singles&quot;)),
+    color = expression(paste(&quot;-lo&quot;, g[10],&quot;(P)&quot;)),
+    size = expression(paste(&quot;-lo&quot;, g[10],&quot;(P)&quot;))
+  ) +
+  theme(
+    text = element_text(size = 4),
+    axis.line = element_line(linewidth = use_linewidth/2),
+    axis.ticks = element_line(linewidth = use_linewidth/2),
+    axis.text = element_text(size = 4),
+    
+    legend.text = element_text(size = 4),
+    legend.title = element_text(size = 4),
+    legend.key.width = unit(0.1, &quot;cm&quot;)
+  ) +
+  geom_text_repel(
+    data = top_10, 
+    aes(label = gene_name),
+    color = &#39;black&#39;,
+    size = 1,
+    min.segment.length = 0,
+    segment.size  = 0.2,
+    box.padding = 0.2, 
+    max.overlaps = Inf) +
+  geom_hline(yintercept = 0, lty = 3, linewidth = use_linewidth/2, alpha = 0.7) +
+  geom_vline(xintercept = 0, lty = 3, linewidth = use_linewidth/2, alpha = 0.7)</code></pre>
+<p><img src="figure/rnaseq-low_input-br16-t150.Rmd/dge-condition-batch-scatter-top10-1.png" width="1080" style="display: block; margin: auto;" /></p>
+</div>
+<div id="extended-data-figure-4b-functional-enrichment-analysis"
+class="section level2" number="7">
+<h2><span class="header-section-number">7</span> Extended Data Figure
+4b: Functional enrichment analysis</h2>
+<p>Gene set enrichment analysis (GSEA plots) for representative gene
+sets comparing BR16 single CTCs and CTC clusters upon circulation
+through the microfluidic platform (shear stress) over cells incubated in
+static conditions (control). NES, normalized enrichment score; FDR,
+false discovery rate.</p>
+<pre class="r"><code>test_type &lt;- &#39;GSEA&#39;
+gset_collection &lt;- &#39;msigdb.c2.cp&#39;
+p_thrs &lt;- 0.01
+n_split &lt;- 8
+use_comp &lt;- c(&#39;condition_clusters&#39;, &#39;condition_singles&#39;)
+
+
+comb_gse &lt;- foreach(i = use_comp, .combine = rbind) %do% {
+  gse_list[[i]][[test_type]][[gset_collection]]@result %&gt;% 
+    mutate(comp = i)
+}
+
+# Keep only reactome and kegg and WP, removing overlapping pathways
+comb_gse %&lt;&gt;% 
+  filter(grepl(&#39;REACTOME|KEGG|WP_&#39;, ID)) %&gt;% 
+  filter(ID != c(&#39;WP_OXIDATIVE_PHOSPHORYLATION&#39;)) %&gt;% 
+  filter(ID != c(&#39;KEGG_SELENOAMINO_ACID_METABOLISM&#39;)) %&gt;% 
+  filter(ID != c(&#39;KEGG_ALZHEIMERS_DISEASE&#39;)) %&gt;% 
+  mutate(
+    Description = clean_msigdb_names(Description),
+    ID = clean_msigdb_names(ID)
+  )
+
+# Generate similarity matrix:
+  # We combine all significant gene sets for each comparison. To do so, we remove the duplicated gene sets by selecting the one with the lowest adjusted P value. Then we update the list of core genes by combining all the genes from all the comparisons. Finally, we run the enrichplot::pairwise_termsim function to calculate the similarity matrix.
+fake_gseaResult &lt;-  gse_list[[1]][[test_type]][[gset_collection]]
+# Select comparisons with the lowest adjusted P value
+top_by_cond_pthrs &lt;-  comb_gse %&gt;% 
+  filter(p.adjust &lt; p_thrs) %&gt;% 
+  arrange(p.adjust) %&gt;% 
+  filter(!duplicated(ID))
+rownames(top_by_cond_pthrs) &lt;- NULL
+top_by_cond_pthrs %&lt;&gt;% mutate(torow = ID) %&gt;% column_to_rownames(&#39;torow&#39;)
+# Update the list of core genes by combining all the genes from all the comparisons.
+combine_core_enrichment &lt;- foreach(i = top_by_cond_pthrs$ID) %do% {
+  comb_gse %&gt;% filter(ID == i) %&gt;% 
+    pull(core_enrichment) %&gt;% 
+    paste0(., collapse = &#39;/&#39;) %&gt;% 
+    strsplit(., &#39;/&#39;) %&gt;% 
+    unlist %&gt;% 
+    unique %&gt;% paste(.,collapse = &#39;/&#39;)
+} %&gt;% unlist()
+names(combine_core_enrichment) &lt;- top_by_cond_pthrs$ID
+top_by_cond_pthrs$core_enrichment &lt;- combine_core_enrichment[ top_by_cond_pthrs$ID]
+fake_gseaResult@result &lt;- top_by_cond_pthrs
+#Generate similarity matrix
+fake_gseaResult &lt;- pairwise_termsim(fake_gseaResult)
+
+similarity_matrix &lt;- fake_gseaResult@termsim
+# Transform matrix to symmetric
+use_mat &lt;- similarity_matrix
+for(x in rownames(use_mat)){
+  for(y in colnames(use_mat)) {
+    if(x == y) {
+       use_mat[x,y] &lt;- 1
+    } else {
+      max_sim &lt;- max(c(use_mat[x,y], use_mat[y,x]), na.rm = TRUE)
+      use_mat[x,y] &lt;- max_sim
+      use_mat[y,x] &lt;- max_sim
+    }
+  }
+}
+rownames(use_mat) &lt;- clean_msigdb_names(rownames(use_mat))
+colnames(use_mat) &lt;- clean_msigdb_names(colnames(use_mat))
+
+
+# Cluster the similarity matrix
+# Use the ward.D method to avoid overlapping ancestor nodes of each group
+hc &lt;- hclust(
+  as.dist(1- use_mat),
+  method = &#39;ward.D&#39;
+)
+split &lt;- cutree(hc, k=n_split) %&gt;% data.frame %&gt;% set_names(&#39;cluster&#39;)
+split$curated_id &lt;- clean_msigdb_names(rownames(split))
+
+# Manually annotate clusters, using top gene sets per cluster as guide
+# fake_gseaResult@result %&gt;% filter(cluster == &#39;8&#39;) %&gt;% dplyr::select(ID, NES, p.adjust, GeneRatio, core_enrichment)
+split$cluster_name &lt;- case_when(
+  split$cluster == 1 ~ &#39;Translation&#39;,
+  split$cluster == 2 ~ &#39;Translation&#39;,
+  split$cluster == 3 ~ &#39;Respiratory electron transport&#39;,
+
+  split$cluster == 4 ~ &#39;CDC42 / Rho gtpase cycle&#39;,
+  split$cluster == 5 ~ &#39;KEAP1-NFE2L2 pathway&#39;,
+  split$cluster == 6 ~ &#39;Adherens junction and axon guidance&#39;,
+  split$cluster == 7 ~ &#39;Proteasome degradation&#39;,
+  split$cluster == 8 ~ &#39;Chromatin modification&#39;,
+  TRUE ~ &#39;Other&#39;
+)
+
+relevel_clusters &lt;- c(
+  &#39;CDC42 / Rho gtpase cycle&#39;,
+  &#39;Chromatin modification&#39;,
+  &#39;Adherens junction and axon guidance&#39;,
+  &#39;Translation&#39;,
+  &#39;Respiratory electron transport&#39;,
+  &#39;KEAP1-NFE2L2 pathway&#39;,
+  &quot;Proteasome degradation&quot;
+)
+
+split %&lt;&gt;%
+  mutate(
+    cluster_fct = factor(cluster, levels = as.character(1:n_split)),
+    cluster_name =  fct_reorder(cluster_name, cluster)
+  )
+
+
+# We select significant gene sets in all test (donor, time)
+top_all &lt;- comb_gse %&gt;% 
+  filter(p.adjust &lt; p_thrs) %&gt;% 
+  pull(ID) %&gt;% unique
+
+res_top &lt;- comb_gse %&gt;% 
+  filter(ID %in% top_all) %&gt;% 
+  left_join(split, by = c(&#39;ID&#39; = &#39;curated_id&#39;))</code></pre>
+<pre class="r"><code>use_linewidth &lt;- 1/2.141959
+
+res_top %&gt;% 
+  mutate(
+    p.sig = p.adjust &lt; 0.05,
+    p.adjust = -log10( p.adjust),
+    comparison = ifelse(comp == &#39;condition_clusters&#39;, &#39;Clusters&#39;, comp),
+    comparison = ifelse(comparison == &#39;condition_singles&#39;, &#39;Singles&#39;, comparison),
+    comparison = factor(comparison, levels = c(&#39;Singles&#39;, &#39;Clusters&#39;)),
+    cluster_name = factor(cluster_name, levels = relevel_clusters)
+    ) %&gt;% 
+  ggplot(aes(comparison, Description, fill = NES, color = p.sig, size = p.adjust)) +
+  geom_point(shape = 21, stroke = 0.1) +
+  facet_grid(rows = vars(cluster_name),
+             scale = &#39;free&#39;, space = &#39;free&#39;,
+             labeller = label_wrap_gen(20) ) +
+  scale_fill_distiller(palette = &quot;RdBu&quot;, na.value = &quot;grey70&quot;) +
+  scale_color_manual(values = c(&#39;white&#39;, &#39;black&#39;)) +
+  scale_y_discrete(labels = default_labeller(50)) +
+  scale_x_discrete(position = &quot;top&quot;) +
+  scale_size_continuous(range=c(0.5, 1.50)) +
+  labs(y = &#39;&#39;, 
+       x = &#39;&#39;,  
+       size = expression(paste(&quot;lo&quot;, g[10],&quot;(FDR)&quot;)),
+       color = &#39;FDR &lt; 0.05&#39;
+       ) +
+  theme(
+    text = element_text(size = 4),
+    axis.line = element_blank(),
+    # axis.ticks.y = element_blank(),
+    axis.ticks.y = element_line(linewidth = use_linewidth/2),
+    axis.ticks.x =  element_blank(),
+    panel.border = element_rect(color = &quot;black&quot;, fill = NA, linewidth = use_linewidth),
+   
+    strip.background = element_blank(),
+    axis.text.y = element_text(size = 2),
+    axis.text.x = element_text(size = 5),
+    legend.text = element_text(size = 2),
+    legend.title = element_text(size = 2),
+    legend.key.width = unit(0.1, &quot;cm&quot;),
+    
+    strip.text.y = element_text(size = 2, angle = 0, hjust = 0),
+    panel.spacing = unit(0.07, &quot;lines&quot;)
+  )</code></pre>
+<p><img src="figure/rnaseq-low_input-br16-t150.Rmd/gsea-2cp-dotplot-full-1.png" width="1200" style="display: block; margin: auto;" /></p>
+</div>
+<div id="figure-2g-gsea-plot-cdc42-rho-gtpase-cycle"
+class="section level2" number="8">
+<h2><span class="header-section-number">8</span> Figure 2g: GSEA plot
+CDC42 / Rho gtpase cycle</h2>
+<p>GSEA plot representing the running enrichment score for the top
+pathway enriched in CTC clusters under shear stress compared to static
+condition. Vertical black lines represent the location in the rank of
+the genes belonging to the gene set. Color gradation is representative
+of gene log2 fold-change upon shear stress.</p>
+<pre class="r"><code>i &lt;- &#39;condition_clusters&#39;
+x &lt;- gse_list[[i]][[test_type]][[gset_collection]]
+# gseaplot(x, geneSetID = 1, by = &quot;runningScore&quot;)
+
+
+gseaplot2(x, geneSetID = 1, base_size = 4, 
+          ES_line_size = 0.2,
+          color = &#39;black&#39;,
+          linerange_width = 0.1,
+          subplots = 1:2,
+          rel_heights=c(1.5, 0.3, 1),
+          title = &#39;CDC42 / Rho gtpase cycle&#39;)</code></pre>
+<p><img src="figure/rnaseq-low_input-br16-t150.Rmd/gsea-2cp-cd42_gtpase-gsea_plot-1.png" width="840" style="display: block; margin: auto;" /></p>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<p>R version 4.2.2 (2022-10-31) Platform: x86_64-apple-darwin17.0
+(64-bit) Running under: macOS Big Sur … 10.16</p>
+<p>Matrix products: default BLAS:
+/Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRblas.0.dylib
+LAPACK:
+/Library/Frameworks/R.framework/Versions/4.2/Resources/lib/libRlapack.dylib</p>
+<p>locale: [1]
+en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8</p>
+<p>attached base packages: [1] grid stats4 stats graphics grDevices
+utils datasets [8] methods base</p>
+<p>other attached packages: [1] DOSE_3.24.2 enrichplot_1.18.3<br />
+[3] UpSetR_1.4.0 circlize_0.4.15<br />
+[5] ComplexHeatmap_2.14.0 org.Hs.eg.db_3.16.0<br />
+[7] AnnotationDbi_1.60.0 PCAtools_2.10.0<br />
+[9] pheatmap_1.0.12 scran_1.26.2<br />
+[11] scuttle_1.8.4 SingleCellExperiment_1.20.0 [13] DESeq2_1.38.3
+edgeR_3.40.2<br />
+[15] limma_3.54.1 SummarizedExperiment_1.28.0 [17] Biobase_2.58.0
+GenomicRanges_1.50.2<br />
+[19] GenomeInfoDb_1.34.9 IRanges_2.32.0<br />
+[21] S4Vectors_0.36.1 BiocGenerics_0.44.0<br />
+[23] MatrixGenerics_1.10.0 matrixStats_1.0.0<br />
+[25] openxlsx_4.2.5.2 magrittr_2.0.3<br />
+[27] ggrepel_0.9.4 ggbeeswarm_0.7.2<br />
+[29] RColorBrewer_1.1-3 colorblindr_0.1.0<br />
+[31] colorspace_2.1-1 cowplot_1.1.1<br />
+[33] kableExtra_1.3.4 knitr_1.44<br />
+[35] DT_0.30 foreach_1.5.2<br />
+[37] showtext_0.9-6 showtextdb_3.0<br />
+[39] sysfonts_0.8.8 lubridate_1.9.3<br />
+[41] forcats_1.0.0 stringr_1.5.1<br />
+[43] dplyr_1.1.4 purrr_1.0.2<br />
+[45] readr_2.1.4 tidyr_1.3.1<br />
+[47] tibble_3.2.1 ggplot2_3.5.0<br />
+[49] tidyverse_2.0.0 workflowr_1.7.1</p>
+<p>loaded via a namespace (and not attached): [1] utf8_1.2.4
+tidyselect_1.2.1<br />
+[3] RSQLite_2.3.1 htmlwidgets_1.6.2<br />
+[5] BiocParallel_1.32.5 scatterpie_0.2.1<br />
+[7] munsell_0.5.1 ScaledMatrix_1.6.0<br />
+[9] codetools_0.2-19 statmod_1.5.0<br />
+[11] withr_3.0.1 GOSemSim_2.24.0<br />
+[13] rstudioapi_0.15.0 labeling_0.4.3<br />
+[15] git2r_0.32.0 GenomeInfoDbData_1.2.9<br />
+[17] polyclip_1.10-6 bit64_4.0.5<br />
+[19] farver_2.1.2 rprojroot_2.0.3<br />
+[21] treeio_1.22.0 vctrs_0.6.5<br />
+[23] generics_0.1.3 xfun_0.40<br />
+[25] timechange_0.2.0 R6_2.5.1<br />
+[27] doParallel_1.0.17 clue_0.3-65<br />
+[29] graphlayouts_1.0.1 rsvd_1.0.5<br />
+[31] locfit_1.5-9.8 gridGraphics_0.5-1<br />
+[33] fgsea_1.24.0 bitops_1.0-7<br />
+[35] cachem_1.0.8 DelayedArray_0.24.0<br />
+[37] promises_1.2.1 scales_1.3.0<br />
+[39] ggraph_2.1.0 beeswarm_0.4.0<br />
+[41] gtable_0.3.5 beachmat_2.14.0<br />
+[43] Cairo_1.6-1 processx_3.8.2<br />
+[45] tidygraph_1.2.3 rlang_1.1.4<br />
+[47] systemfonts_1.1.0 splines_4.2.2<br />
+[49] GlobalOptions_0.1.2 lazyeval_0.2.2<br />
+[51] yaml_2.3.7 reshape2_1.4.4<br />
+[53] httpuv_1.6.8 qvalue_2.30.0<br />
+[55] tools_4.2.2 ggplotify_0.1.2<br />
+[57] jquerylib_0.1.4 Rcpp_1.0.13<br />
+[59] plyr_1.8.9 sparseMatrixStats_1.10.0 [61] zlibbioc_1.44.0
+RCurl_1.98-1.12<br />
+[63] ps_1.7.5 GetoptLong_1.0.5<br />
+[65] viridis_0.6.4 cluster_2.1.4<br />
+[67] fs_1.6.4 magick_2.7.3<br />
+[69] data.table_1.14.8 whisker_0.4.1<br />
+[71] patchwork_1.1.3 hms_1.1.3<br />
+[73] evaluate_0.22 xtable_1.8-4<br />
+[75] HDO.db_0.99.1 XML_3.99-0.14<br />
+[77] gridExtra_2.3 shape_1.4.6<br />
+[79] compiler_4.2.2 shadowtext_0.1.2<br />
+[81] crayon_1.5.2 htmltools_0.5.6.1<br />
+[83] ggfun_0.1.3 later_1.3.1<br />
+[85] tzdb_0.4.0 aplot_0.2.2<br />
+[87] geneplotter_1.76.0 DBI_1.1.3<br />
+[89] tweenr_2.0.2 MASS_7.3-60<br />
+[91] Matrix_1.5-3 cli_3.6.3<br />
+[93] parallel_4.2.2 metapod_1.6.0<br />
+[95] igraph_1.5.1 pkgconfig_2.0.3<br />
+[97] getPass_0.2-2 xml2_1.3.5<br />
+[99] ggtree_3.4.4 svglite_2.1.2<br />
+[101] annotate_1.76.0 vipor_0.4.5<br />
+[103] bslib_0.5.1 dqrng_0.3.1<br />
+[105] webshot_0.5.5 XVector_0.38.0<br />
+[107] rvest_1.0.3 yulab.utils_0.1.7<br />
+[109] callr_3.7.3 digest_0.6.37<br />
+[111] Biostrings_2.66.0 fastmatch_1.1-4<br />
+[113] rmarkdown_2.25 tidytree_0.4.2<br />
+[115] DelayedMatrixStats_1.20.0 rjson_0.2.21<br />
+[117] nlme_3.1-163 lifecycle_1.0.4<br />
+[119] jsonlite_1.8.7 BiocNeighbors_1.16.0<br />
+[121] viridisLite_0.4.2 fansi_1.0.6<br />
+[123] pillar_1.9.0 lattice_0.20-45<br />
+[125] KEGGREST_1.38.0 fastmap_1.1.1<br />
+[127] httr_1.4.7 GO.db_3.16.0<br />
+[129] glue_1.8.0 zip_2.3.0<br />
+[131] png_0.1-8 iterators_1.0.14<br />
+[133] bluster_1.8.0 bit_4.0.5<br />
+[135] ggforce_0.4.1 stringi_1.8.4<br />
+[137] sass_0.4.7 blob_1.2.4<br />
+[139] BiocSingular_1.14.0 memoise_2.0.1<br />
+[141] ape_5.7-1 irlba_2.3.5.1</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+https://docs.mathjax.org/en/latest/web/configuration.html. This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4,h5",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
