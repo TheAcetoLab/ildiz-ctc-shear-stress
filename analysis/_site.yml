@@ -1,7 +1,7 @@
-name: "ildiz-ctc-shear-stress"
+name: ctc-shear-stress
 output_dir: ../docs
 navbar:
-  title: "ildiz-ctc-shear-stress"
+  title: ctc-shear-stress
   left:
   - text: Home
     href: index.html
@@ -9,9 +9,16 @@ navbar:
     href: about.html
   - text: License
     href: license.html
+  right:
+  - icon: fab fa-github
+    text: Source code
+    href: https://github.com/TheAcetoLab/ildiz-ctc-shear-stress
 output:
   workflowr::wflow_html:
     toc: yes
     toc_float: yes
     theme: cosmo
     highlight: textmate
+    number_sections: yes
+    code_folding: hide
+    toc_depth: 5
