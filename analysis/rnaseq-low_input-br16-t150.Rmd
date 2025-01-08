@@ -1,0 +1,1178 @@
+---
+title: "Analysis of low input RNA-seq for BR16 cells at time 150"
+subtitle: "Differential gene expression"
+author: "Francesc Castro-Giner"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+params:
+  date: '`r format(Sys.Date(), "%B %d, %Y")`'
+  se_file: ./data/rnaseq/low-input/se_br16_t150.rds
+  output_dir: ./output/rnaseq/low-input/differential_expression/br16_t150
+  min_counts: 3
+  min_present_prop: 0.20
+---
+
+## Load libraries, additional functions and data
+
+Setup environment
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(results='asis', echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.align = 'center', fig.width = 3.5, fig.asp = 0.618, dpi = 600, dev = c("png", "pdf"), engine.opts = list(bash = "-l"))
+
+options(stringsAsFactors = FALSE)
+
+use_seed <- 1100101
+set.seed(use_seed)
+
+
+dir.create(params$output_dir, recursive = TRUE, showWarnings = FALSE)
+
+```
+
+Load packages
+```{r load-libraries}
+library(tidyverse)
+library(showtext)
+library(foreach)
+library(DT)
+library(knitr)
+library(kableExtra)
+library(cowplot)
+library(colorblindr)
+library(RColorBrewer)
+library(ggbeeswarm)
+library(ggrepel)
+library(magrittr)
+library(openxlsx)
+library(ggrepel)
+
+library(SummarizedExperiment)
+library(edgeR)
+library(DESeq2)
+library(scuttle)
+library(scran)
+library(pheatmap)
+library(PCAtools)
+library(org.Hs.eg.db)
+library(ComplexHeatmap)
+library(circlize)
+library(UpSetR)
+library(enrichplot)
+library(DOSE)
+```
+
+Clean files generated in previous runs
+```{r clean-files}
+rmd_file <- current_input()
+if(!is.null(rmd_file)) {
+  figures_dir <- file.path('./docs/figure',rmd_file)
+  if(dir.exists(figures_dir)) {
+    unlink(file.path(figures_dir, "*"))
+  }
+}
+
+```
+
+Load ggplot theme
+```{r ggplot-theme}
+source("./configuration/rmarkdown/ggplot_theme.R")
+```
+
+Set color palettes
+```{r, echo = FALSE}
+source("./configuration/rmarkdown/color_palettes.R")
+```
+
+Load custom functions
+```{r load-functions}
+source('./code/R-functions/dge_wrappers.r')
+source('./code/R-functions/dge_report.r')
+source('./code/R-functions/gse_omnibus.r')
+source('./code/R-functions/gse_report.r')
+clean_msigdb_names <- function(x) x %>% gsub('REACTOME_', '', .) %>% gsub('WP_', '', .) %>% gsub('BIOCARTA_', '', .) %>% gsub('KEGG_', '', .) %>% gsub('PID_', '', .) %>% gsub('GOBP_', '', .) %>% gsub('_', ' ', .) %>% str_to_sentence
+```
+
+Define additional functions
+```{r add-functions}
+clean_sample_alias <- function(x) 
+  gsub('o[0-9]*_[0-9]*-|_cDNA.*|_gDNA.*|_S.*_R1_001|ESI_', '', x)
+```
+
+Define functions for GSEA running score plot, using the original function from enrichplot package
+```{r gseaplot-function}
+##' extract gsea result of selected geneSet
+##'
+##'
+##' @title gsInfo
+##' @param object gseaResult object
+##' @param geneSetID gene set ID
+##' @return data.frame
+##' @author Guangchuang Yu
+## @export
+gsInfo <- function(object, geneSetID) {
+    geneList <- object@geneList
+
+    if (is.numeric(geneSetID))
+        geneSetID <- object@result[geneSetID, "ID"]
+
+    geneSet <- object@geneSets[[geneSetID]]
+    exponent <- object@params[["exponent"]]
+    df <- gseaScores(geneList, geneSet, exponent, fortify=TRUE)
+    df$ymin <- 0
+    df$ymax <- 0
+    pos <- df$position == 1
+    h <- diff(range(df$runningScore))/20
+    df$ymin[pos] <- -h
+    df$ymax[pos] <- h
+    df$geneList <- geneList
+
+    df$Description <- object@result[geneSetID, "Description"]
+    return(df)
+}
+
+gseaScores <- getFromNamespace("gseaScores", "DOSE")
+
+gseaplot <- function (x, geneSetID, by = "all", title = "",
+                                 color='black', color.line="green",
+                                 color.vline="#FA5860", ...){
+    by <- match.arg(by, c("runningScore", "preranked", "all"))
+    gsdata <- gsInfo(x, geneSetID)
+    p <- ggplot(gsdata, aes_(x = ~x)) +
+        theme_dose() + xlab("Position in the Ranked List of Genes")
+    if (by == "runningScore" || by == "all") {
+        p.res <- p + geom_linerange(aes_(ymin=~ymin, ymax=~ymax), color=color)
+        p.res <- p.res + geom_line(aes_(y = ~runningScore), color=color.line,
+                                   size=1)
+        enrichmentScore <- x@result[geneSetID, "enrichmentScore"]
+        es.df <- data.frame(es = which.min(abs(p$data$runningScore - enrichmentScore)))
+        p.res <- p.res + geom_vline(data = es.df, aes_(xintercept = ~es),
+                                    colour = color.vline, linetype = "dashed")
+        p.res <- p.res + ylab("Running Enrichment Score")
+        p.res <- p.res + geom_hline(yintercept = 0)
+    }
+    if (by == "preranked" || by == "all") {
+        df2 <- data.frame(x = which(p$data$position == 1))
+        df2$y <- p$data$geneList[df2$x]
+        p.pos <- p + geom_segment(data=df2, aes_(x=~x, xend=~x, y=~y, yend=0),
+                                  color=color)
+        p.pos <- p.pos + ylab("Ranked List Metric") +
+            xlim(0, length(p$data$geneList))
+    }
+    if (by == "runningScore")
+        return(p.res + ggtitle(title))
+    if (by == "preranked")
+        return(p.pos + ggtitle(title))
+
+    p.pos <- p.pos + xlab(NULL) + theme(axis.text.x = element_blank(),
+                                        axis.ticks.x = element_blank())
+    p.pos <- p.pos + ggtitle(title) +
+        theme(plot.title=element_text(hjust=0.5, size=rel(2)))
+    plot_grid(p.pos, p.res, ncol=1, align="v")
+}
+
+
+gseaplot2 <- function(x, geneSetID, title = "", color="green", base_size = 11,
+                      rel_heights=c(1.5, .5, 1), subplots = 1:3,
+                      pvalue_table = FALSE, ES_geom="line", ES_line_size = 1,
+                      p2_rect_alpha = 0.9, linerange_alpha = 1, linerange_width = 1) {
+    ES_geom <- match.arg(ES_geom, c("line", "dot"))
+
+    geneList <- position <- NULL ## to satisfy codetool
+
+    if (length(geneSetID) == 1) {
+        gsdata <- gsInfo(x, geneSetID)
+    } else {
+        gsdata <- do.call(rbind, lapply(geneSetID, gsInfo, object = x))
+    }
+
+    p <- ggplot(gsdata, aes_(x = ~x)) + xlab(NULL) +
+        theme_classic(base_size) +
+        theme(#panel.grid.major = element_line(colour = "grey92"),
+              #panel.grid.minor = element_line(colour = "grey92"),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.grid.major.y = element_blank(),
+              panel.grid.minor.y = element_blank()) +
+        scale_x_continuous(expand=c(0,0))
+
+    if (ES_geom == "line") {
+        es_layer <- geom_line(aes_(y = ~runningScore, color= ~Description),
+                              size=ES_line_size)
+    } else {
+        es_layer <- geom_point(aes_(y = ~runningScore, color= ~Description),
+                               size=1, data = subset(gsdata, position == 1))
+    }
+
+    p.res <- p + es_layer +
+        theme(legend.position = c(.8, .8), legend.title = element_blank(),
+              legend.background = element_rect(fill = "transparent"))
+
+    p.res <- p.res + ylab("Running Enrichment Score") +
+        theme(axis.text.x=element_blank(),
+              axis.ticks.x=element_blank(),
+              axis.line.x=element_blank(),
+              plot.margin=margin(t=.2, r = .2, b=0, l=.2, unit="cm"))
+
+    i <- 0
+    for (term in unique(gsdata$Description)) {
+        idx <- which(gsdata$ymin != 0 & gsdata$Description == term)
+        gsdata[idx, "ymin"] <- i
+        gsdata[idx, "ymax"] <- i + 1
+        i <- i + 1
+    }
+    p2 <- ggplot(gsdata, aes_(x = ~x)) +
+        geom_linerange(aes_(ymin=~ymin, ymax=~ymax, color=~Description,
+                            alpha = linerange_alpha),
+                       linewidth = linerange_width) +
+        xlab(NULL) + ylab(NULL) + theme_classic(base_size) +
+        theme(legend.position = "none",
+              plot.margin = margin(t=-.1, b=0,unit="cm"),
+              axis.ticks = element_blank(),
+              axis.text = element_blank(),
+              axis.line.x = element_blank()) +
+        scale_x_continuous(expand=c(0,0)) +
+        scale_y_continuous(expand=c(0,0))
+
+    if (length(geneSetID) == 1) {
+        ## geneList <- gsdata$geneList
+        ## j <- which.min(abs(geneList))
+        ## v1 <- quantile(geneList[1:j], seq(0,1, length.out=6))[1:5]
+        ## v2 <- quantile(geneList[j:length(geneList)], seq(0,1, length.out=6))[1:5]
+
+        ## v <- sort(c(v1, v2))
+        ## inv <- findInterval(geneList, v)
+
+        v <- seq(1, sum(gsdata$position), length.out=9)
+        inv <- findInterval(rev(cumsum(gsdata$position)), v)
+        if (min(inv) == 0) inv <- inv + 1
+
+        col <- c(rev(brewer.pal(5, "Blues")), brewer.pal(5, "Reds"))
+
+        ymin <- min(p2$data$ymin)
+        yy <- max(p2$data$ymax - p2$data$ymin) * .3
+        xmin <- which(!duplicated(inv))
+        xmax <- xmin + as.numeric(table(inv)[as.character(unique(inv))])
+        d <- data.frame(ymin = ymin, ymax = yy,
+                        xmin = xmin,
+                        xmax = xmax,
+                        col = col[unique(inv)])
+        p2 <- p2 + geom_rect(
+                       aes_(xmin=~xmin,
+                            xmax=~xmax,
+                            ymin=~ymin,
+                            ymax=~ymax,
+                            fill=~I(col)),
+                       data=d,
+                       alpha=p2_rect_alpha,
+                       inherit.aes=FALSE)
+    }
+
+    ## p2 <- p2 +
+    ## geom_rect(aes(xmin=x-.5, xmax=x+.5, fill=geneList),
+    ##           ymin=ymin, ymax = ymin + yy, alpha=.5) +
+    ## theme(legend.position="none") +
+    ## scale_fill_gradientn(colors=color_palette(c("blue", "red")))
+
+    df2 <- p$data #data.frame(x = which(p$data$position == 1))
+    df2$y <- p$data$geneList[df2$x]
+    p.pos <- p + geom_segment(data=df2, aes_(x=~x, xend=~x, y=~y, yend=0),
+                              color="grey")
+    p.pos <- p.pos + 
+      # ylab("Ranked List Metric") +
+      ylab(expression(paste("lo", g[2],"(Fold change)")))+
+        xlab("Rank in Ordered Dataset") +
+        theme(plot.margin=margin(t = -.1, r = .2, b=.2, l=.2, unit="cm"))
+
+    if (!is.null(title) && !is.na(title) && title != "")
+        p.res <- p.res + ggtitle(title)
+
+    if (length(color) == length(geneSetID)) {
+        p.res <- p.res + scale_color_manual(values=color)
+        if (length(color) == 1) {
+            p.res <- p.res + theme(legend.position = "none")
+            p2 <- p2 + scale_color_manual(values = "black")
+        } else {
+            p2 <- p2 + scale_color_manual(values = color)
+        }
+    }
+
+    if (pvalue_table) {
+        pd <- x[geneSetID, c("Description", "pvalue", "p.adjust")]
+        # pd <- pd[order(pd[,1], decreasing=FALSE),]
+        rownames(pd) <- pd$Description
+
+        pd <- pd[,-1]
+        pd <- round(pd, 4)
+
+        tp <- tableGrob2(pd, p.res)
+
+        p.res <- p.res + theme(legend.position = "none") +
+            annotation_custom(tp,
+                              xmin = quantile(p.res$data$x, .5),
+                              xmax = quantile(p.res$data$x, .95),
+                              ymin = quantile(p.res$data$runningScore, .75),
+                              ymax = quantile(p.res$data$runningScore, .9))
+    }
+
+
+    plotlist <- list(p.res, p2, p.pos)[subplots]
+    n <- length(plotlist)
+    plotlist[[n]] <- plotlist[[n]] +
+        theme(axis.line.x = element_line(),
+              axis.ticks.x=element_line(),
+              axis.text.x = element_text())
+
+    if (length(subplots) == 1)
+        return(plotlist[[1]] + theme(plot.margin=margin(t=.2, r = .2, b=.2,
+                                                        l=.2, unit="cm")))
+
+
+    if (length(rel_heights) > length(subplots))
+        rel_heights <- rel_heights[subplots]
+
+    plot_grid(plotlist = plotlist, ncol=1, align="v", rel_heights=rel_heights)
+}
+
+```
+
+Load MSigDB files
+```{r load-msigdb}
+msigdb_vs <- 'v2022.1.Hs'
+
+gmt_files_symbols <- list(
+  msigdb.c2.cp = paste0('./data/resources/MSigDB/', msigdb_vs, '/c2.cp.', msigdb_vs, '.symbols.gmt')
+)
+
+```
+
+
+## Data processing
+
+### Load original data
+
+```{r load-original-data}
+se <- readRDS(params$se_file)
+```
+
+
+### Data wrangling
+
+Filtering out low-abundance features. Keeping those features with at least 10 counts in at least 70% of samples of the smallest group.
+```{r dw-subset-feature-abundance}
+# use_rows <- filterByExpr(se, group=paste(se$donor, se$condition), min.count = 10, min.total.count = 15, min.prop = 0.5)
+use_rows <- filterByExpr(se, group=paste(se$donor, se$condition), min.count = 1, min.prop = 0.3)
+se <- se[use_rows,]
+
+# Update PerCellQCMetrics
+colData(se) <- colData(se) %>% data.frame %>% dplyr::select(-(sum:subsets_Ribo_percent)) %>% DataFrame
+se <- addPerCellQCMetrics(
+  se,
+  subsets=list(
+    Mito=which(rowData(se)$is.mito),
+    Ribo=which(rowData(se)$is.ribo)
+  ),
+  percent.top = c(1,5,10,20, 50, 100),
+  threshold = 3
+  )
+
+# # Table of removed features
+# table(use_rows) %>% 
+#   data.frame %>% 
+#   mutate(use_rows = ifelse(use_rows == TRUE, 'keep', 'remove')) %>% 
+#   column_to_rownames('use_rows') %>% 
+#   kbl(caption = 'Filtered features') %>%
+#   kable_paper(bootstrap_options = c("striped", "hover", "condensed"), full_width = F)
+```
+
+TMM normalization
+```{r dw-tmm}
+norm_method <- "TMM"
+exprs_mat_for_norm <- assay(se, 'counts')
+norm_factors <- calcNormFactors(exprs_mat_for_norm, method = norm_method)
+lib_size <- colSums(exprs_mat_for_norm)/10^6
+se$size_factor <- (norm_factors * lib_size)
+se <- logNormCounts(se, size.factors =se$size_factor)
+se <- logNormCounts(se, size.factors =se$size_factor, log = FALSE)
+```
+
+
+### List of comparisons
+```{r conf-comparisons}
+x <- colData(se) %>% data.frame
+comp_list <- list(
+  Condition = list(
+    Chip = x %>% 
+      filter(condition == 'Chip') %>% 
+      pull(sample_alias) %>% 
+      sort,
+    Control = x %>% 
+      filter(condition == 'Control') %>% 
+      pull(sample_alias) %>% 
+      sort
+  ),
+  condition_clusters = list(
+    Chip = x %>% 
+      filter(condition == 'Chip' & ctc_type == 'ctc_cluster') %>% 
+      pull(sample_alias) %>% 
+      sort,
+    Control = x %>% 
+      filter(condition == 'Control' & ctc_type == 'ctc_cluster') %>% 
+      pull(sample_alias) %>% 
+      sort
+  ),
+  condition_singles = list(
+    Chip = x %>% 
+      filter(condition == 'Chip' & ctc_type == 'ctc_single') %>% 
+      pull(sample_alias) %>% 
+      sort,
+    Control = x %>% 
+      filter(condition == 'Control' & ctc_type == 'ctc_single') %>% 
+      pull(sample_alias) %>% 
+      sort
+  )
+)
+
+```
+
+
+
+## Data generation
+
+### Differential expression analysis
+Run differential expression analysis using DESeq
+```{r deseq-run, eval = FALSE}
+use_comp <-  comp_list[[1]]
+
+dge_list <- foreach(use_comp = comp_list) %do%{
+  se_cols <- se$sample_alias %in% unlist(use_comp)
+  use_se <- se[,se_cols]
+  use_se$group <- ifelse(
+    use_se$sample_alias %in% use_comp[[1]],
+    names(use_comp)[1],
+    names(use_comp)[2]
+  )
+  use_se$group <-  factor(use_se$group, 
+                          levels = c(
+                            names(use_comp)[2], 
+                            names(use_comp)[1]))
+  
+  # Generate DESeq dataset
+  dds <- DESeqDataSet(use_se, design = ~ group)
+  dds <- DESeq(dds)
+  
+  # Get gene description for genes in dds
+  httr::set_config(httr::config(ssl_verifypeer = FALSE))
+  ensembl <-  biomaRt::useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+  gene_desc <- biomaRt::getBM(attributes=c('ensembl_gene_id','description'), filters = 'ensembl_gene_id', values = rownames(dds), mart =ensembl)
+  rownames(gene_desc) <- gene_desc$ensembl_gene_id
+
+  
+  # Extract and annotate results
+  res <- results(dds) %>% data.frame
+  res_lfcs <- lfcShrink(dds, coef="group_Chip_vs_Control", type="apeglm")
+  res$lfcshrink <- res_lfcs$log2FoldChange
+  res$ensembl_gene_id <- rownames(dds)
+  res$gene_name <- mcols(dds)$gene_name
+  res$gene_type <- mcols(dds)$gene_type
+  res$is.mito <- mcols(dds)$is.mito
+  res$is.ribo <- mcols(dds)$is.ribo
+  res %<>% left_join(gene_desc) %>% mutate(tr = ensembl_gene_id) %>% column_to_rownames('tr')
+
+  return(res)
+}
+names(dge_list) <- names(comp_list)
+
+##
+## Interaction Condition : CTC type
+##
+# Generate DESeq dataset
+use_se <- se[,se$ctc_type %in% c('ctc_single', 'ctc_cluster')]
+use_se$ctc_type <- factor(use_se$ctc_type,  
+                          levels = c('ctc_single', 'ctc_cluster'))
+dds <- DESeqDataSet(use_se, 
+                    design = ~ ctc_type + condition + ctc_type:condition)
+dds <- DESeq(dds)
+
+# Get gene description for genes in dds
+httr::set_config(httr::config(ssl_verifypeer = FALSE))
+ensembl <-  biomaRt::useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+gene_desc <- biomaRt::getBM(
+  attributes=c('ensembl_gene_id','description'),
+  filters = 'ensembl_gene_id', values = rownames(dds), 
+  mart =ensembl)
+rownames(gene_desc) <- gene_desc$ensembl_gene_id
+
+# Extract and annotate results
+# resultsNames(dds)
+res <- results(dds, name="ctc_typectc_cluster.conditionChip") %>% 
+  data.frame
+res_lfcs <- lfcShrink(dds, 
+                      coef="ctc_typectc_cluster.conditionChip",
+                      type="apeglm")
+res$lfcshrink <- res_lfcs$log2FoldChange
+res$ensembl_gene_id <- rownames(dds)
+res$gene_name <- mcols(dds)$gene_name
+res$gene_type <- mcols(dds)$gene_type
+res$is.mito <- mcols(dds)$is.mito
+res$is.ribo <- mcols(dds)$is.ribo
+res %<>% left_join(gene_desc) %>% mutate(tr = ensembl_gene_id) %>% column_to_rownames('tr')
+
+dge_list[["Interaction_Condition_CTC_type"]] <- res
+
+
+##
+## Adjusted by CTC type
+##
+# Generate DESeq dataset
+use_se <- se[,se$ctc_type %in% c('ctc_single', 'ctc_cluster')]
+use_se$ctc_type <- factor(use_se$ctc_type,  
+                          levels = c('ctc_single', 'ctc_cluster'))
+dds <- DESeqDataSet(use_se, 
+                    design = ~ ctc_type + condition)
+dds <- DESeq(dds)
+
+# Get gene description for genes in dds
+httr::set_config(httr::config(ssl_verifypeer = FALSE))
+ensembl <-  biomaRt::useEnsembl(biomart="ensembl", dataset="hsapiens_gene_ensembl")
+gene_desc <- biomaRt::getBM(
+  attributes=c('ensembl_gene_id','description'),
+  filters = 'ensembl_gene_id', values = rownames(dds), 
+  mart =ensembl)
+rownames(gene_desc) <- gene_desc$ensembl_gene_id
+
+# Extract and annotate results
+# resultsNames(dds)
+res <- results(dds, name="condition_Chip_vs_Control") %>% 
+  data.frame
+res_lfcs <- lfcShrink(dds, 
+                      coef="condition_Chip_vs_Control",
+                      type="apeglm")
+res$lfcshrink <- res_lfcs$log2FoldChange
+res$ensembl_gene_id <- rownames(dds)
+res$gene_name <- mcols(dds)$gene_name
+res$gene_type <- mcols(dds)$gene_type
+res$is.mito <- mcols(dds)$is.mito
+res$is.ribo <- mcols(dds)$is.ribo
+res %<>% left_join(gene_desc) %>% mutate(tr = ensembl_gene_id) %>% column_to_rownames('tr')
+
+dge_list[["condition_batch"]] <- res
+
+
+# Save objects
+saveRDS(dge_list, file = file.path(params$output_dir, 'dge-deseq.rds'))
+
+# detach("package:biomaRt", unload=TRUE)
+```
+
+
+### Functional enrichment
+```{r gse-run, eval = FALSE}
+dge_list <- readRDS(file.path(params$output_dir, 'dge-deseq.rds'))
+dge <-  dge_list[[1]]
+gse_list <- list()
+gse_list <- foreach(dge = dge_list) %do%{
+  gse_res <- gse_omnibus(
+    feature_names = dge$gene_name,
+    p = dge$padj,
+    fc = dge$log2FoldChange,
+    fc_thrs = 0.5,
+    gmt_files = gmt_files_symbols,
+    run_enricher = TRUE,
+    run_GSEA = TRUE,
+    args_gse = list(minGSSize = 10, maxGSSize = 500, pvalueCutoff = 1)
+    )
+   return(gse_res)
+
+}
+names(gse_list) <- names(dge_list)
+
+# Save objects
+saveRDS(gse_list, file = file.path(params$output_dir,'gse_omnibus-deseq.rds'))
+```
+
+### Load data
+```{r load-data}
+dge_list <- readRDS(file.path(params$output_dir, 'dge-deseq.rds'))
+gse_list <- readRDS(file.path(params$output_dir, 'gse_omnibus-deseq.rds'))
+```
+
+
+
+
+## Supplementary tables
+
+```{r st3-conf-file}
+# File name summary
+rmd_file <- current_input()
+if(is.null(rmd_file))
+  rmd_file <- 'tmp'
+file_xlsx <- file.path('./docs/file',rmd_file, 'st_3.xlsx')
+dir.create(dirname(file_xlsx), recursive = TRUE, showWarnings = FALSE)
+
+# Generate workbook
+wb <- createWorkbook()
+```
+
+<!-- Write DGE results to xlsx file -->
+```{r st3-write-xlsx-dge}
+use_comp <- c("condition_batch", "condition_singles", "condition_clusters")
+use_dge_list <- dge_list[use_comp]
+names(use_dge_list) <-c("DGE - Combined", "DGE - CTC singles", "DGE - CTC clusters")
+for(i in names(use_dge_list)) {
+   addWorksheet(wb, i)
+   res <- use_dge_list[[i]] %>% 
+      dplyr::select(gene_name,
+                    ensembl_gene_id,
+                    gene_type,
+                    log2FoldChange,
+                    pvalue,
+                    padj,
+                    description) %>% 
+      arrange(padj)
+    writeData(wb, i, res)
+}
+```
+
+<!-- Write GSEA results to xlsx file -->
+```{r st3-write-xlsx-gsea}
+use_comp <- c("condition_singles", "condition_clusters")
+use_gse_list <- gse_list[use_comp]
+names(use_gse_list) <- c("GSEA - CTC singles", "GSEA - CTC clusters")
+
+test_type <- 'GSEA'
+gset_collection <- 'msigdb.c2.cp'
+
+
+for(i in names(use_gse_list)) {
+   addWorksheet(wb, i)
+   res <- use_gse_list[[i]][[test_type]][[gset_collection]]@result %>%
+      filter(grepl('REACTOME|KEGG|WP_', ID)) %>% 
+      filter(!ID %in% 'KEGG_TRYPTOPHAN_METABOLISM') %>% 
+      filter(!ID %in% 'WP_GLUCURONIDATION') %>% 
+      filter(!ID %in% 'WP_MAPK_SIGNALING_PATHWAY') %>% 
+      mutate(
+        Description = clean_msigdb_names(Description)
+      ) %>% 
+      dplyr::select(ID,
+                    Description,
+                    setSize,
+                    NES,
+                    pvalue,
+                    p.adjust,
+                    leading_edge,
+                    Count, 
+                    GeneRatio,
+                    core_enrichment) %>% 
+      arrange(pvalue)
+   
+    writeData(wb, i, res)
+}
+```
+
+<!-- Write ORA results to xlsx file -->
+```{r st3-write-xlsx-ora}
+use_comp <- c('condition_batch', "condition_singles", "condition_clusters")
+use_gse_list <- gse_list[use_comp]
+names(use_gse_list) <- c("ORA - Combined", "ORA - CTC singles", "ORA - CTC clusters")
+
+test_type <- 'enricher'
+gset_collection <- 'msigdb.c2.cp'
+
+for(i in names(use_gse_list)) {
+  addWorksheet(wb, i)
+  res <- rbind(
+    use_gse_list[[i]][[test_type]]$up[[gset_collection]]@result %>% 
+      mutate(comp = i, direction = 'up'),
+    use_gse_list[[i]][[test_type]]$down[[gset_collection]]@result %>% 
+      mutate(comp = i, direction = 'down')
+  ) %>%
+      filter(grepl('REACTOME|KEGG|WP_', ID)) %>% 
+      mutate(
+        Description = clean_msigdb_names(Description)
+      ) %>% 
+      dplyr::select(ID,
+                    Description,
+                    GeneRatio,
+                    BgRatio,
+                    GeneProp,
+                    pvalue,
+                    p.adjust,
+                    direction,
+                    geneID) %>% 
+      arrange(pvalue)
+   
+    writeData(wb, i, res)
+}
+```
+
+<!-- Write final file -->
+```{r st3-write-xlsx-final}
+saveWorkbook(wb, file_xlsx, TRUE)
+```
+
+- [**Supplementary Table 3. Low-input RNA sequencing differential gene expression, gene set enrichment analysis (GSEA) and Over Representation analysis (ORA). **](`r gsub("docs/", "" , file_xlsx)`) Table listing genes differentially expressed and corresponding GSEA gene sets in BR16 single CTCs and CTC clusters in samples incubated in static conditions (control) versus circulated through the microfluidic platform (shear stress). 
+
+
+## Figure 2f: Heatmap of differential expressed genes
+
+Heatmap depicting the expression levels of genes showing a distinct response to shear stress in BR16 single CTCs and CTC clusters (adjusted P value < 0.05). Samples were either incubated in static conditions (control) or circulated through the microfluidic platform (shear stress) for 2.5 hours.
+
+```{r dge-heatmap-conf}
+p_thrs <- 0.05
+```
+
+### Single-CTC: Chip over Control
+```{r dge-heatmap-single-ctc, fig.width = 2, fig.asp = 0.88}
+i <- 'condition_singles'
+use_ctc_type <- 'ctc_single'
+
+x <- dge_list[[i]] %>% filter(padj < p_thrs) %>% 
+  mutate(
+    direction = ifelse(log2FoldChange > 0, 'up', 'down'),
+    direction = factor(direction, levels = c('up', 'down'))
+  )
+
+use_genes <- x %>% rownames
+
+use_samples <- colData(se) %>% 
+  data.frame %>% 
+  filter(ctc_type == use_ctc_type) %>% 
+  pull(sample_alias) %>% sort
+
+
+mat <- assay(se, 'logcounts')[use_genes, use_samples]
+rownames(mat) <- rowData(se)[use_genes, 'gene_name']
+zmat <- t(apply(mat, 1, scale, center = TRUE, scale = TRUE))
+colnames(zmat) <- colnames(mat)
+
+# Set heatmap color (limiting the range matrix)
+zmax <- range(zmat) %>% abs %>% max()
+col_fun <-  colorRamp2(
+  seq(-zmax, zmax, length.out = 9), 
+  rev(brewer.pal(n = 9, name ="RdBu")))
+
+# Colum Split
+col_split <- colData(se[,colnames(zmat)])[,'condition']
+
+
+Heatmap(
+  zmat, 
+  
+  # Column characteristics
+  # top_annotation = column_ha,
+  column_split = col_split,
+  column_gap = unit(0.5, "mm"),
+  cluster_column_slices = FALSE,
+  column_dend_reorder = TRUE,
+  show_column_names = FALSE,
+  show_column_dend = FALSE,
+  column_title_gp = gpar(fontsize = 3),
+  
+  # Row characteristics
+  show_row_names = FALSE,
+  show_row_dend = FALSE,
+  row_split = x$direction,
+  cluster_row_slices = FALSE,
+  row_gap = unit(0.5, "mm"),
+  row_title = NULL,
+  
+  # General parameters
+  name = 'z\nscore',
+  col =  col_fun,
+  border = TRUE,
+  border_gp = gpar(col = "black", lwd = 0.5),
+  heatmap_legend_param = list(title_gp = gpar(fontsize = 5), 
+                              labels_gp = gpar(fontsize = 5),
+                              grid_width = unit(0.15, "cm")),
+  use_raster = TRUE,
+  show_heatmap_legend = FALSE
+)
+```
+
+```{r dge-heatmap--single-ctc-legends-v, fig.width = 3, fig.asp = 0.88}
+ht_legend <-  Legend(col_fun = col_fun,
+              title = "z\nscore",
+              title_gp = gpar(fontsize = 5),
+              labels_gp = gpar(fontsize = 5)
+              )
+
+pd <-  packLegend(ht_legend, max_width = unit(10, "cm"), 
+                  row_gap = unit(5, "mm"), direction = "horizontal")
+draw(pd)
+```
+
+
+### CTC clusters: Chip over Control
+```{r dge-heatmap-cluster-ctc, fig.width = 2, fig.asp = 0.88}
+i <- 'condition_clusters'
+use_ctc_type <- 'ctc_cluster'
+
+x <- dge_list[[i]] %>% filter(padj < p_thrs) %>% 
+  mutate(
+    direction = ifelse(log2FoldChange > 0, 'up', 'down'),
+    direction = factor(direction, levels = c('up', 'down'))
+  )
+
+use_genes <- x %>% rownames
+
+use_samples <- colData(se) %>% 
+  data.frame %>% 
+  filter(ctc_type == use_ctc_type) %>% 
+  pull(sample_alias) %>% sort
+
+
+mat <- assay(se, 'logcounts')[use_genes, use_samples]
+rownames(mat) <- rowData(se)[use_genes, 'gene_name']
+zmat <- t(apply(mat, 1, scale, center = TRUE, scale = TRUE))
+colnames(zmat) <- colnames(mat)
+
+# Set heatmap color (limiting the range matrix)
+zmax <- range(zmat) %>% abs %>% max()
+col_fun <-  colorRamp2(
+  seq(-zmax, zmax, length.out = 9), 
+  rev(brewer.pal(n = 9, name ="RdBu")))
+
+# Colum Split
+col_split <- colData(se[,colnames(zmat)])[,'condition']
+
+
+Heatmap(
+  zmat, 
+  
+  # Column characteristics
+  # top_annotation = column_ha,
+  column_split = col_split,
+  column_gap = unit(0.5, "mm"),
+  cluster_column_slices = FALSE,
+  column_dend_reorder = TRUE,
+  show_column_names = FALSE,
+  show_column_dend = FALSE,
+  column_title_gp = gpar(fontsize = 3),
+  # column_title = NULL,
+  
+  # Row characteristics
+  show_row_names = FALSE,
+  show_row_dend = FALSE,
+  row_split = x$direction,
+  cluster_row_slices = FALSE,
+  row_gap = unit(0.5, "mm"),
+  row_title = NULL,
+  
+  # General parameters
+  name = 'z\nscore',
+  col =  col_fun,
+  border = TRUE,
+  border_gp = gpar(col = "black", lwd = 0.5),
+  heatmap_legend_param = list(title_gp = gpar(fontsize = 5), 
+                              labels_gp = gpar(fontsize = 5),
+                              grid_width = unit(0.15, "cm")),
+  use_raster = TRUE,
+  show_heatmap_legend = FALSE
+)
+```
+
+```{r dge-heatmap-cluster-ctc-legends-v, fig.width = 3, fig.asp = 0.88}
+ht_legend <-  Legend(col_fun = col_fun,
+              title = "z\nscore",
+              title_gp = gpar(fontsize = 5),
+              labels_gp = gpar(fontsize = 5)
+              )
+
+pd <-  packLegend(ht_legend, max_width = unit(10, "cm"), 
+                  row_gap = unit(5, "mm"), direction = "horizontal")
+draw(pd)
+```
+
+
+## Extended Data Figure 4a: Scatter plot of fold change correlation in BR16 single CTCs and CTC clusters
+
+Scatter plot showing the correlation of fold change in BR16 single CTCs and CTC clusters. Points are colored by the adjusted P value obtained in the combined analysis of both CTC types.
+
+```{r dge-condition-batch-conf}
+p_thrs <- 0.05
+
+# Genes to annotate
+genes_annot <- c('CYP1A1', 'CYP1B1', 'TIPARP', 
+                     'CYP1A2', 
+                     'NQO1', 'GSTA2', 'UGT1A1', 'UGT1A6', 'NFE2L2',
+                     'AHR', 'LRAT', 'IL22',  'LHX4',
+                     'CDC42')
+
+dge_cl <- dge_list[['condition_clusters']] %>% 
+  dplyr::select(ensembl_gene_id, gene_name, log2FoldChange, padj)
+dge_s <- dge_list[['condition_singles']] %>% 
+  dplyr::select(ensembl_gene_id, gene_name, log2FoldChange, padj)
+dge_comb <- dge_list[['condition_batch']] %>% 
+  dplyr::select(ensembl_gene_id, gene_name, log2FoldChange, padj) %>% 
+  dplyr::rename(
+    log2FoldChange.comb = log2FoldChange,
+    padj.comb = padj
+  )
+
+use_dge <- full_join(
+  dge_s, 
+  dge_cl, 
+  by = c('ensembl_gene_id', 'gene_name'),
+  suffix = c(".s", ".cl")
+  ) %>% 
+  full_join(
+    dge_comb, 
+    by = c('ensembl_gene_id', 'gene_name')
+  )
+```
+
+```{r dge-condition-batch-scatter-top10, fig.width = 1.8, fig.asp = 0.8}
+use_linewidth <- 1/2.141959
+
+use_data <- use_dge %>%
+  filter(!is.na(padj.comb)) %>% 
+  mutate(
+    use_p = ifelse(padj.comb < 1e-10, 1e-10, padj.comb)
+    )
+
+top_10 <- use_data %>% 
+  filter(!is.na(padj.comb)) %>% 
+  arrange(padj.comb) %>% 
+  head(10)
+
+use_data %>% 
+  arrange(desc(use_p)) %>% 
+  ggplot(
+    aes(log2FoldChange.s, 
+        log2FoldChange.cl, 
+        color = -log10(use_p),
+        size = -log10(use_p)
+        )) +
+  geom_point(alpha = 0.7, shape = 16) +
+  geom_abline(lty = 2, linewidth = use_linewidth/2, alpha = 0.5) +
+  # scale_color_distiller(palette = "Purples", na.value = "grey70", direction = 1) +
+  scale_color_viridis_c(direction = -1) +
+  # scale_color_gradient2(
+  #   low = "white", 
+  #   mid = "#feb24c", 
+  #   high = "brown", 
+  #   midpoint = -log10(p_thrs)
+  # ) +
+  scale_size_continuous(range = c(0.01, 0.8)) +
+  labs(
+    x = expression(paste("lo", g[2],"(Fold change) in Clusters")),
+    y = expression(paste("lo", g[2],"(Fold change) in Singles")),
+    color = expression(paste("-lo", g[10],"(P)")),
+    size = expression(paste("-lo", g[10],"(P)"))
+  ) +
+  theme(
+    text = element_text(size = 4),
+    axis.line = element_line(linewidth = use_linewidth/2),
+    axis.ticks = element_line(linewidth = use_linewidth/2),
+    axis.text = element_text(size = 4),
+    
+    legend.text = element_text(size = 4),
+    legend.title = element_text(size = 4),
+    legend.key.width = unit(0.1, "cm")
+  ) +
+  geom_text_repel(
+    data = top_10, 
+    aes(label = gene_name),
+    color = 'black',
+    size = 1,
+    min.segment.length = 0,
+    segment.size  = 0.2,
+    box.padding = 0.2, 
+    max.overlaps = Inf) +
+  geom_hline(yintercept = 0, lty = 3, linewidth = use_linewidth/2, alpha = 0.7) +
+  geom_vline(xintercept = 0, lty = 3, linewidth = use_linewidth/2, alpha = 0.7)
+
+```
+
+
+## Extended Data Figure 4b: Functional enrichment analysis
+
+Gene set enrichment analysis (GSEA plots) for representative gene sets comparing BR16 single CTCs and CTC clusters upon circulation through the microfluidic platform (shear stress) over cells incubated in static conditions (control). NES, normalized enrichment score; FDR, false discovery rate.
+
+```{r gsea-2cp-conf}
+test_type <- 'GSEA'
+gset_collection <- 'msigdb.c2.cp'
+p_thrs <- 0.01
+n_split <- 8
+use_comp <- c('condition_clusters', 'condition_singles')
+
+
+comb_gse <- foreach(i = use_comp, .combine = rbind) %do% {
+  gse_list[[i]][[test_type]][[gset_collection]]@result %>% 
+    mutate(comp = i)
+}
+
+# Keep only reactome and kegg and WP, removing overlapping pathways
+comb_gse %<>% 
+  filter(grepl('REACTOME|KEGG|WP_', ID)) %>% 
+  filter(ID != c('WP_OXIDATIVE_PHOSPHORYLATION')) %>% 
+  filter(ID != c('KEGG_SELENOAMINO_ACID_METABOLISM')) %>% 
+  filter(ID != c('KEGG_ALZHEIMERS_DISEASE')) %>% 
+  mutate(
+    Description = clean_msigdb_names(Description),
+    ID = clean_msigdb_names(ID)
+  )
+
+# Generate similarity matrix:
+  # We combine all significant gene sets for each comparison. To do so, we remove the duplicated gene sets by selecting the one with the lowest adjusted P value. Then we update the list of core genes by combining all the genes from all the comparisons. Finally, we run the enrichplot::pairwise_termsim function to calculate the similarity matrix.
+fake_gseaResult <-  gse_list[[1]][[test_type]][[gset_collection]]
+# Select comparisons with the lowest adjusted P value
+top_by_cond_pthrs <-  comb_gse %>% 
+  filter(p.adjust < p_thrs) %>% 
+  arrange(p.adjust) %>% 
+  filter(!duplicated(ID))
+rownames(top_by_cond_pthrs) <- NULL
+top_by_cond_pthrs %<>% mutate(torow = ID) %>% column_to_rownames('torow')
+# Update the list of core genes by combining all the genes from all the comparisons.
+combine_core_enrichment <- foreach(i = top_by_cond_pthrs$ID) %do% {
+  comb_gse %>% filter(ID == i) %>% 
+    pull(core_enrichment) %>% 
+    paste0(., collapse = '/') %>% 
+    strsplit(., '/') %>% 
+    unlist %>% 
+    unique %>% paste(.,collapse = '/')
+} %>% unlist()
+names(combine_core_enrichment) <- top_by_cond_pthrs$ID
+top_by_cond_pthrs$core_enrichment <- combine_core_enrichment[ top_by_cond_pthrs$ID]
+fake_gseaResult@result <- top_by_cond_pthrs
+#Generate similarity matrix
+fake_gseaResult <- pairwise_termsim(fake_gseaResult)
+
+similarity_matrix <- fake_gseaResult@termsim
+# Transform matrix to symmetric
+use_mat <- similarity_matrix
+for(x in rownames(use_mat)){
+  for(y in colnames(use_mat)) {
+    if(x == y) {
+       use_mat[x,y] <- 1
+    } else {
+      max_sim <- max(c(use_mat[x,y], use_mat[y,x]), na.rm = TRUE)
+      use_mat[x,y] <- max_sim
+      use_mat[y,x] <- max_sim
+    }
+  }
+}
+rownames(use_mat) <- clean_msigdb_names(rownames(use_mat))
+colnames(use_mat) <- clean_msigdb_names(colnames(use_mat))
+
+
+# Cluster the similarity matrix
+# Use the ward.D method to avoid overlapping ancestor nodes of each group
+hc <- hclust(
+  as.dist(1- use_mat),
+  method = 'ward.D'
+)
+split <- cutree(hc, k=n_split) %>% data.frame %>% set_names('cluster')
+split$curated_id <- clean_msigdb_names(rownames(split))
+
+# Manually annotate clusters, using top gene sets per cluster as guide
+# fake_gseaResult@result %>% filter(cluster == '8') %>% dplyr::select(ID, NES, p.adjust, GeneRatio, core_enrichment)
+split$cluster_name <- case_when(
+  split$cluster == 1 ~ 'Translation',
+  split$cluster == 2 ~ 'Translation',
+  split$cluster == 3 ~ 'Respiratory electron transport',
+
+  split$cluster == 4 ~ 'CDC42 / Rho gtpase cycle',
+  split$cluster == 5 ~ 'KEAP1-NFE2L2 pathway',
+  split$cluster == 6 ~ 'Adherens junction and axon guidance',
+  split$cluster == 7 ~ 'Proteasome degradation',
+  split$cluster == 8 ~ 'Chromatin modification',
+  TRUE ~ 'Other'
+)
+
+relevel_clusters <- c(
+  'CDC42 / Rho gtpase cycle',
+  'Chromatin modification',
+  'Adherens junction and axon guidance',
+  'Translation',
+  'Respiratory electron transport',
+  'KEAP1-NFE2L2 pathway',
+  "Proteasome degradation"
+)
+
+split %<>%
+  mutate(
+    cluster_fct = factor(cluster, levels = as.character(1:n_split)),
+    cluster_name =  fct_reorder(cluster_name, cluster)
+  )
+
+
+# We select significant gene sets in all test (donor, time)
+top_all <- comb_gse %>% 
+  filter(p.adjust < p_thrs) %>% 
+  pull(ID) %>% unique
+
+res_top <- comb_gse %>% 
+  filter(ID %in% top_all) %>% 
+  left_join(split, by = c('ID' = 'curated_id'))
+```
+
+```{r gsea-2cp-dotplot-full, fig.width = 2, fig.asp = 1.80}
+use_linewidth <- 1/2.141959
+
+res_top %>% 
+  mutate(
+    p.sig = p.adjust < 0.05,
+    p.adjust = -log10( p.adjust),
+    comparison = ifelse(comp == 'condition_clusters', 'Clusters', comp),
+    comparison = ifelse(comparison == 'condition_singles', 'Singles', comparison),
+    comparison = factor(comparison, levels = c('Singles', 'Clusters')),
+    cluster_name = factor(cluster_name, levels = relevel_clusters)
+    ) %>% 
+  ggplot(aes(comparison, Description, fill = NES, color = p.sig, size = p.adjust)) +
+  geom_point(shape = 21, stroke = 0.1) +
+  facet_grid(rows = vars(cluster_name),
+             scale = 'free', space = 'free',
+             labeller = label_wrap_gen(20) ) +
+  scale_fill_distiller(palette = "RdBu", na.value = "grey70") +
+  scale_color_manual(values = c('white', 'black')) +
+  scale_y_discrete(labels = default_labeller(50)) +
+  scale_x_discrete(position = "top") +
+  scale_size_continuous(range=c(0.5, 1.50)) +
+  labs(y = '', 
+       x = '',  
+       size = expression(paste("lo", g[10],"(FDR)")),
+       color = 'FDR < 0.05'
+       ) +
+  theme(
+    text = element_text(size = 4),
+    axis.line = element_blank(),
+    # axis.ticks.y = element_blank(),
+    axis.ticks.y = element_line(linewidth = use_linewidth/2),
+    axis.ticks.x =  element_blank(),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = use_linewidth),
+   
+    strip.background = element_blank(),
+    axis.text.y = element_text(size = 2),
+    axis.text.x = element_text(size = 5),
+    legend.text = element_text(size = 2),
+    legend.title = element_text(size = 2),
+    legend.key.width = unit(0.1, "cm"),
+    
+    strip.text.y = element_text(size = 2, angle = 0, hjust = 0),
+    panel.spacing = unit(0.07, "lines")
+  )
+```
+
+## Figure 2g: GSEA plot CDC42 / Rho gtpase cycle
+
+GSEA plot representing the running enrichment score for the top pathway enriched in CTC clusters under shear stress compared to static condition. Vertical black lines represent the location in the rank of the genes belonging to the gene set. Color gradation is representative of gene log2 fold-change upon shear stress.
+
+```{r gsea-2cp-cd42_gtpase-gsea_plot, fig.width = 1.4, fig.asp = 0.8}
+
+i <- 'condition_clusters'
+x <- gse_list[[i]][[test_type]][[gset_collection]]
+# gseaplot(x, geneSetID = 1, by = "runningScore")
+
+
+gseaplot2(x, geneSetID = 1, base_size = 4, 
+          ES_line_size = 0.2,
+          color = 'black',
+          linerange_width = 0.1,
+          subplots = 1:2,
+          rel_heights=c(1.5, 0.3, 1),
+          title = 'CDC42 / Rho gtpase cycle')
+
+```
+

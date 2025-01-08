@@ -9,8 +9,6 @@ editor_options:
 params:
   date: '`r format(Sys.Date(), "%B %d, %Y")`'
   output_dir: ./output/rnaseq/bulk/differential_expression/all_models
-  k_predefined: '8'
-  ncpu: 4
 ---
 
 ## Load libraries, additional functions and data
@@ -69,6 +67,18 @@ library(apeglm)
 library(patchwork)
 library(geomtextpath)
 library(enrichplot)
+```
+
+Clean files generated in previous runs
+```{r clean-files}
+rmd_file <- current_input()
+if(!is.null(rmd_file)) {
+  figures_dir <- file.path('./docs/figure',rmd_file)
+  if(dir.exists(figures_dir)) {
+    unlink(file.path(figures_dir, "*"))
+  }
+}
+
 ```
 
 Load ggplot theme
