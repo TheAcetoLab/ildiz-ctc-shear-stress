@@ -1,12 +1,9 @@
-# Synthetic lethality with shear stress: exploiting hemodynamic forces 
-to dismantle circulating tumor cells
+# Synthetic lethality with shear stress: exploiting hemodynamic forces to dismantle circulating tumor cells
 
 
 A [workflowr][] project.
 
 [workflowr]: https://github.com/workflowr/workflowr
-
-
 
 
 ## Data pre-processing
