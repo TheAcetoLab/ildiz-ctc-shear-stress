@@ -121,6 +121,68 @@ rowData(sec) %<>% data.frame %>%
   DataFrame
 ```
 
+Generate addditional statistics for combined SE
+```{r combine-stats}
+sec$n_reads <-apply(assay(sec, 'counts'), 2, sum) 
+
+sec$guides_over_1 <-apply(assay(sec, 'counts_norm') > 0, 2, sum) 
+sec$guides_over_5 <-apply(assay(sec, 'counts_norm') >= 5, 2, sum) 
+sec$guides_over_10 <-apply(assay(sec, 'counts_norm') >= 10, 2, sum)
+sec$guides_over_30 <-apply(assay(sec, 'counts_norm') >= 30, 2, sum)
+sec$guides_over_100 <-apply(assay(sec, 'counts_norm') >= 100, 2, sum)
+sec$guides_over_500 <-apply(assay(sec, 'counts_norm') >= 500, 2, sum)
+
+sec$p_guides_over_1 <-sec$guides_over_1 / nrow(sec)
+sec$p_guides_over_5 <-sec$guides_over_5 / nrow(sec)
+sec$p_guides_over_10 <-sec$guides_over_10 / nrow(sec)
+sec$p_guides_over_30 <-sec$guides_over_30 / nrow(sec)
+sec$p_guides_over_500 <-sec$guides_over_500 / nrow(sec)
+
+# assay(sec, 'counts_norm') >= 10
+
+# sec$gini_index <- assay(se, 'counts') %>% apply(., 2, ineq, type = 'Gini')
+# sec$gini_index_log <- log10(assay(se, 'counts') + 1) %>% apply(., 2, ineq, type = 'Gini')
+
+gene_table_stas <- rowData(sec) %>% data.frame %>% 
+  group_by(gene) %>% 
+  summarise(
+    n_chip_over_1 = sum(chip_sum > 1),
+    n_chip_over_5 = sum(chip_sum > 5),
+    n_chip_over_10 = sum(chip_sum > 10),
+    n_chip_over_30 = sum(chip_sum > 30),
+    n_chip_over_100 = sum(chip_sum > 100),
+    n_chip_over_500 = sum(chip_sum > 500),
+    n_control_over_1 = sum(control_sum > 1),
+    n_control_over_5 = sum(control_sum > 5),
+    n_control_over_10 = sum(control_sum > 10),
+    n_control_over_30 = sum(control_sum > 30),
+    n_control_over_100 = sum(control_sum > 100),
+    n_control_over_500 = sum(control_sum > 500)
+  ) 
+  
+gene_table <- rowData(sec) %>% data.frame %>% 
+  group_by(gene) %>% 
+  summarise(
+    n_chip_over_1 = sum(chip_sum > 1),
+    n_chip_over_5 = sum(chip_sum > 5),
+    n_chip_over_10 = sum(chip_sum > 10),
+    n_chip_over_30 = sum(chip_sum > 30),
+    n_chip_over_100 = sum(chip_sum > 100),
+    n_chip_over_500 = sum(chip_sum > 500),
+    n_control_over_1 = sum(control_sum > 1),
+    n_control_over_5 = sum(control_sum > 5),
+    n_control_over_10 = sum(control_sum > 10),
+    n_control_over_30 = sum(control_sum > 30),
+    n_control_over_100 = sum(control_sum > 100),
+    n_control_over_500 = sum(control_sum > 500)
+  ) %>% 
+  mutate(
+    depleted_chip = n_chip_over_10 < 2,
+    depleted_control = n_control_over_10 < 2
+  ) %>% 
+  dplyr::select(gene, starts_with('depleted'), ends_with('over_10'), everything())
+
+```
 
 
 
@@ -279,9 +341,7 @@ gse_res <- gse_omnibus(
     gmt_files = gmt_files_symbols,
     
     run_enricher = TRUE,
-    run_GSEA = TRUE,
 
-    args_gse = list(minGSSize = 10, maxGSSize = 250, pvalueCutoff = 1),
     args_enricher = list(minGSSize = 10, maxGSSize = 2500, pvalueCutoff = 1), 
     )
 saveRDS(gse_res, file = file.path(params$output_dir, params$mageck_dir, 'gse.rds'))
@@ -289,6 +349,149 @@ saveRDS(gse_res, file = file.path(params$output_dir, params$mageck_dir, 'gse.rds
 
 ```{r load-gse-omnibus}
 gse_res <- readRDS(file.path(params$output_dir, params$mageck_dir, 'gse.rds'))
+```
+
+
+
+
+## Extended Data Figure 5a: CRISPR screen data quality control
+
+Bar plots showing the percentage of detected gRNAs in samples incubated in static conditions (control) or circulated through the microfluidic platform (shear stress; left). Density plots showing
+the distribution of read counts of gRNAs retrieved in control (n = 1) and shear stress (n = 1) conditions. Dashed line indicates the detection threshold (10 counts) (right).
+
+```{r combine-stats-guides-barplot, fig.width = 1.85,  fig.asp = 0.76}
+use_linewidth <- 1/2.141959
+colData(sec) %>% data.frame %>%
+  mutate(
+    sample_alias = str_to_title(sample_alias),
+    sample_alias = factor(sample_alias, levels = c('Control', 'Chip'))
+    ) %>% 
+  ggplot(aes(sample_alias, p_guides_over_10)) +
+  geom_col() +
+  geom_text(aes(label = round(100*p_guides_over_10, 1)), 
+            vjust = 1.5, 
+            colour = "white", 
+            size = geom_text_size) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.01)),
+                     labels = scales::percent) +
+  labs(
+    x = '',
+    y = 'Percentage of guides detected'
+  ) +
+  theme(
+    axis.ticks = element_line(linewidth = use_linewidth/2),
+    axis.ticks.x = element_blank(),
+    axis.line = element_line(linewidth = use_linewidth/2)
+  )
+
+```
+
+```{r combine-stats-grna-dist, fig.width = 1.85, fig.asp = 0.500}
+use_data <- cbind(
+  rowData(sec) %>% data.frame %>% dplyr::select(sublibrary),
+  assay(sec, 'counts')
+) %>% 
+  pivot_longer(
+    cols = all_of(c('chip', 'control')),
+    names_to = 'condition', 
+    values_to = 'counts') %>% 
+  mutate(
+    condition = ifelse(condition == 'control', 'Control', 'Shear stress')
+  )
+
+use_linewidth <- 1/2.141959
+use_data %>% 
+  ggplot(aes(counts + 1, fill = condition)) +
+    geom_density(alpha = 0.8, linewidth =  use_linewidth/2) +
+    geom_vline(xintercept = 11, lty = 3, linewidth =  use_linewidth/2) +
+    scale_fill_manual(values = c(Control = 'grey80', `Shear stress` = '#D55E00')) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.03))) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.01)), trans = 'log10') +
+    labs(
+      x = 'Number of reads + 1',
+      fill = ''
+    )+
+    theme(
+      axis.ticks = element_line(linewidth = use_linewidth/2),
+      axis.line = element_line(linewidth = use_linewidth/2),
+      axis.text = element_text(size = 4),
+      axis.title = element_text(size = 4),
+      legend.text = element_text(size = 4),
+      legend.key.width = unit(0.1, "cm")
+    )
+```
+
+## Extended Data Figure 5b: CRISPR screen data quality control
+Over-Representation analysis (ORA) plot of genes depleted in static conditions. FDR, false discovery rate.
+```{r ora, eval = FALSE}
+x <- gene_table %>% 
+  mutate(
+    detected = n_chip_over_10 >= 2,
+    p = ifelse(!detected, 0.01, 1),
+    fc = ifelse(!detected,2, 0)
+    )
+
+ora_fitness <- gse_omnibus(
+    feature_names = x$gene,
+    p = x$p,
+    fc = x$fc,
+    fc_thrs = 0.1,
+    gmt_files = gmt_files_symbols,
+    
+    run_enricher = TRUE,
+    run_enrichGO = TRUE,
+
+    return_sets = 'abs',
+    go_ontologies = c('BP'),
+    go_simplify = TRUE,
+    go_simplify_p = 0.05,
+    go_simplify_cutoff = 0.4,
+    args_enricher = list(minGSSize = 10, maxGSSize = 250, pvalueCutoff = 1), 
+    annot_db = 'org.Hs.eg.db',
+    organism = 'hsapiens'
+    )
+saveRDS(ora_fitness, file = file.path(params$output_dir, 'ora_fitness.rds'))
+```
+
+GO-BP, gene sets with an adjusted P < 0.05
+```{r ora-go, fig.width=2, fig.asp = 0.9}
+ora_fitness <- readRDS(file.path(params$output_dir, 'ora_fitness.rds'))
+use_linewidth <- 1/2.141959
+ora_fitness$enrichGO$abs$BP@result %>% 
+  filter(simplify) %>% 
+  filter(p.adjust < 0.05) %>% 
+  mutate(Description = fct_reorder(Description, -log10(p.adjust))) %>%
+  ggplot(aes(-log10(p.adjust), Description, 
+             color = -log10(p.adjust),
+             size = GeneProp)) +
+  geom_point(shape = 19) +
+  scale_color_gradient(
+     high = "#132B43",
+     low = "#56B1F7"
+  ) +
+  scale_y_discrete(labels = default_labeller(50)) +
+  scale_x_continuous(expand = expansion(mult = c(0.1, 0.1))) +
+  scale_size_continuous(range=c(0.8, 2)) +
+  labs(y = '', 
+       x = '',  
+       size = expression(paste("lo", g[10],"(FDR)")),
+       color = 'FDR < 0.05'
+       ) +
+  theme(
+    text = element_text(size = 5),
+    axis.line = element_blank(),
+    axis.ticks.y = element_blank(),
+    # axis.ticks.y = element_line(linewidth = use_linewidth/2),
+    axis.ticks.x = element_line(linewidth = use_linewidth/2),
+    panel.border = element_rect(color = "black", fill = NA, linewidth = use_linewidth),
+   
+    strip.background = element_blank(),
+    axis.text.y = element_text(size = 3),
+    axis.text.x = element_text(size = 3),
+    legend.text = element_text(size = 2),
+    legend.title = element_text(size = 2),
+    legend.key.width = unit(0.1, "cm")
+  )
 ```
 
 
@@ -556,7 +759,7 @@ ht <- Heatmap(
 draw(ht,  heatmap_legend_side = "bottom")
 ```
 
-#### Extended Data Figure 5c
+### Extended Data Figure 5c
 
 Over Representation Analysis (ORA) plot for gene sets with an adjusted P value < 0.05.
 
