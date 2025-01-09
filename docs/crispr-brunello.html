@@ -11,7 +11,7 @@
 
 <meta name="author" content="Francesc Castro-Giner" />
 
-<meta name="date" content="2025-01-08" />
+<meta name="date" content="2025-01-09" />
 
 <title>Shear stress CRISPR experiment</title>
 
@@ -393,7 +393,7 @@ div.tocify {
 <h3 class="subtitle">Differential abundance using MAGeCK rra module for
 Brunello library</h3>
 <h4 class="author">Francesc Castro-Giner</h4>
-<h4 class="date">January 08, 2025</h4>
+<h4 class="date">January 09, 2025</h4>
 
 </div>
 
@@ -422,7 +422,7 @@ class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2025-01-08
+<strong>Last updated:</strong> 2025-01-09
 </p>
 <p>
 <strong>Checks:</strong> <span
@@ -553,15 +553,15 @@ project makes it easier to run your code on other machines.</p>
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstreece461f69993139273bbeb85674e79ff6ef77cf9dtargetblankce461f6a">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstree8eab3881e2e0a03daf77c6abb9726acd44e447d8targetblank8eab388a">
 <span class="glyphicon glyphicon-ok text-success"
 aria-hidden="true"></span> <strong>Repository version:</strong>
-<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/ce461f69993139273bbeb85674e79ff6ef77cf9d" target="_blank">ce461f6</a>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/8eab3881e2e0a03daf77c6abb9726acd44e447d8" target="_blank">8eab388</a>
 </a>
 </p>
 </div>
 <div
-id="strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstreece461f69993139273bbeb85674e79ff6ef77cf9dtargetblankce461f6a"
+id="strongRepositoryversionstrongahrefhttpsgithubcomTheAcetoLabildizctcshearstresstree8eab3881e2e0a03daf77c6abb9726acd44e447d8targetblank8eab388a"
 class="panel-collapse collapse">
 <div class="panel-body">
 <p>
@@ -571,7 +571,7 @@ reproducibility.
 </p>
 <p>
 The results in this page were generated with repository version
-<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/ce461f69993139273bbeb85674e79ff6ef77cf9d" target="_blank">ce461f6</a>.
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/tree/8eab3881e2e0a03daf77c6abb9726acd44e447d8" target="_blank">8eab388</a>.
 See the <em>Past versions</em> tab to see a history of the changes made
 to the R Markdown and HTML files.
 </p>
@@ -588,6 +588,7 @@ were generated:
 Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+    Ignored:    analysis/figure/
     Ignored:    data/crispr/
     Ignored:    data/resources/
     Ignored:    data/rnaseq/
@@ -648,6 +649,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/8eab3881e2e0a03daf77c6abb9726acd44e447d8/analysis/crispr-brunello.Rmd" target="_blank">8eab388</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-09
+</td>
+<td>
+add crispr ORA fitness
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/TheAcetoLab/ildiz-ctc-shear-stress/4178b40b54d1ffa2f77593ee2da420aa73e85795/docs/crispr-brunello.html" target="_blank">4178b40</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -758,6 +793,65 @@ rowData(sec) %&lt;&gt;% data.frame %&gt;%
   bind_cols(chip_sum = rowSums(assay(se_chip, &#39;counts_norm_mageck&#39;))) %&gt;% 
   bind_cols(control_sum = rowSums(assay(se_control, &#39;counts_norm_mageck&#39;))) %&gt;% 
   DataFrame</code></pre>
+<p>Generate addditional statistics for combined SE</p>
+<pre class="r"><code>sec$n_reads &lt;-apply(assay(sec, &#39;counts&#39;), 2, sum) 
+
+sec$guides_over_1 &lt;-apply(assay(sec, &#39;counts_norm&#39;) &gt; 0, 2, sum) 
+sec$guides_over_5 &lt;-apply(assay(sec, &#39;counts_norm&#39;) &gt;= 5, 2, sum) 
+sec$guides_over_10 &lt;-apply(assay(sec, &#39;counts_norm&#39;) &gt;= 10, 2, sum)
+sec$guides_over_30 &lt;-apply(assay(sec, &#39;counts_norm&#39;) &gt;= 30, 2, sum)
+sec$guides_over_100 &lt;-apply(assay(sec, &#39;counts_norm&#39;) &gt;= 100, 2, sum)
+sec$guides_over_500 &lt;-apply(assay(sec, &#39;counts_norm&#39;) &gt;= 500, 2, sum)
+
+sec$p_guides_over_1 &lt;-sec$guides_over_1 / nrow(sec)
+sec$p_guides_over_5 &lt;-sec$guides_over_5 / nrow(sec)
+sec$p_guides_over_10 &lt;-sec$guides_over_10 / nrow(sec)
+sec$p_guides_over_30 &lt;-sec$guides_over_30 / nrow(sec)
+sec$p_guides_over_500 &lt;-sec$guides_over_500 / nrow(sec)
+
+# assay(sec, &#39;counts_norm&#39;) &gt;= 10
+
+# sec$gini_index &lt;- assay(se, &#39;counts&#39;) %&gt;% apply(., 2, ineq, type = &#39;Gini&#39;)
+# sec$gini_index_log &lt;- log10(assay(se, &#39;counts&#39;) + 1) %&gt;% apply(., 2, ineq, type = &#39;Gini&#39;)
+
+gene_table_stas &lt;- rowData(sec) %&gt;% data.frame %&gt;% 
+  group_by(gene) %&gt;% 
+  summarise(
+    n_chip_over_1 = sum(chip_sum &gt; 1),
+    n_chip_over_5 = sum(chip_sum &gt; 5),
+    n_chip_over_10 = sum(chip_sum &gt; 10),
+    n_chip_over_30 = sum(chip_sum &gt; 30),
+    n_chip_over_100 = sum(chip_sum &gt; 100),
+    n_chip_over_500 = sum(chip_sum &gt; 500),
+    n_control_over_1 = sum(control_sum &gt; 1),
+    n_control_over_5 = sum(control_sum &gt; 5),
+    n_control_over_10 = sum(control_sum &gt; 10),
+    n_control_over_30 = sum(control_sum &gt; 30),
+    n_control_over_100 = sum(control_sum &gt; 100),
+    n_control_over_500 = sum(control_sum &gt; 500)
+  ) 
+  
+gene_table &lt;- rowData(sec) %&gt;% data.frame %&gt;% 
+  group_by(gene) %&gt;% 
+  summarise(
+    n_chip_over_1 = sum(chip_sum &gt; 1),
+    n_chip_over_5 = sum(chip_sum &gt; 5),
+    n_chip_over_10 = sum(chip_sum &gt; 10),
+    n_chip_over_30 = sum(chip_sum &gt; 30),
+    n_chip_over_100 = sum(chip_sum &gt; 100),
+    n_chip_over_500 = sum(chip_sum &gt; 500),
+    n_control_over_1 = sum(control_sum &gt; 1),
+    n_control_over_5 = sum(control_sum &gt; 5),
+    n_control_over_10 = sum(control_sum &gt; 10),
+    n_control_over_30 = sum(control_sum &gt; 30),
+    n_control_over_100 = sum(control_sum &gt; 100),
+    n_control_over_500 = sum(control_sum &gt; 500)
+  ) %&gt;% 
+  mutate(
+    depleted_chip = n_chip_over_10 &lt; 2,
+    depleted_control = n_control_over_10 &lt; 2
+  ) %&gt;% 
+  dplyr::select(gene, starts_with(&#39;depleted&#39;), ends_with(&#39;over_10&#39;), everything())</code></pre>
 </div>
 <div id="configure-analyses" class="section level2" number="3">
 <h2><span class="header-section-number">3</span> Configure analyses</h2>
@@ -901,16 +995,155 @@ gse_res &lt;- gse_omnibus(
     gmt_files = gmt_files_symbols,
     
     run_enricher = TRUE,
-    run_GSEA = TRUE,
 
-    args_gse = list(minGSSize = 10, maxGSSize = 250, pvalueCutoff = 1),
     args_enricher = list(minGSSize = 10, maxGSSize = 2500, pvalueCutoff = 1), 
     )
 saveRDS(gse_res, file = file.path(params$output_dir, params$mageck_dir, &#39;gse.rds&#39;))</code></pre>
 <pre class="r"><code>gse_res &lt;- readRDS(file.path(params$output_dir, params$mageck_dir, &#39;gse.rds&#39;))</code></pre>
 </div>
-<div id="figure-3b-rank-plot" class="section level2" number="6">
-<h2><span class="header-section-number">6</span> Figure 3b: Rank
+<div id="extended-data-figure-5a-crispr-screen-data-quality-control"
+class="section level2" number="6">
+<h2><span class="header-section-number">6</span> Extended Data Figure
+5a: CRISPR screen data quality control</h2>
+<p>Bar plots showing the percentage of detected gRNAs in samples
+incubated in static conditions (control) or circulated through the
+microfluidic platform (shear stress; left). Density plots showing the
+distribution of read counts of gRNAs retrieved in control (n = 1) and
+shear stress (n = 1) conditions. Dashed line indicates the detection
+threshold (10 counts) (right).</p>
+<pre class="r"><code>use_linewidth &lt;- 1/2.141959
+colData(sec) %&gt;% data.frame %&gt;%
+  mutate(
+    sample_alias = str_to_title(sample_alias),
+    sample_alias = factor(sample_alias, levels = c(&#39;Control&#39;, &#39;Chip&#39;))
+    ) %&gt;% 
+  ggplot(aes(sample_alias, p_guides_over_10)) +
+  geom_col() +
+  geom_text(aes(label = round(100*p_guides_over_10, 1)), 
+            vjust = 1.5, 
+            colour = &quot;white&quot;, 
+            size = geom_text_size) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.01)),
+                     labels = scales::percent) +
+  labs(
+    x = &#39;&#39;,
+    y = &#39;Percentage of guides detected&#39;
+  ) +
+  theme(
+    axis.ticks = element_line(linewidth = use_linewidth/2),
+    axis.ticks.x = element_blank(),
+    axis.line = element_line(linewidth = use_linewidth/2)
+  )</code></pre>
+<p><img src="figure/crispr-brunello.Rmd/combine-stats-guides-barplot-1.png" width="1110" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>use_data &lt;- cbind(
+  rowData(sec) %&gt;% data.frame %&gt;% dplyr::select(sublibrary),
+  assay(sec, &#39;counts&#39;)
+) %&gt;% 
+  pivot_longer(
+    cols = all_of(c(&#39;chip&#39;, &#39;control&#39;)),
+    names_to = &#39;condition&#39;, 
+    values_to = &#39;counts&#39;) %&gt;% 
+  mutate(
+    condition = ifelse(condition == &#39;control&#39;, &#39;Control&#39;, &#39;Shear stress&#39;)
+  )
+
+use_linewidth &lt;- 1/2.141959
+use_data %&gt;% 
+  ggplot(aes(counts + 1, fill = condition)) +
+    geom_density(alpha = 0.8, linewidth =  use_linewidth/2) +
+    geom_vline(xintercept = 11, lty = 3, linewidth =  use_linewidth/2) +
+    scale_fill_manual(values = c(Control = &#39;grey80&#39;, `Shear stress` = &#39;#D55E00&#39;)) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.03))) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.01)), trans = &#39;log10&#39;) +
+    labs(
+      x = &#39;Number of reads + 1&#39;,
+      fill = &#39;&#39;
+    )+
+    theme(
+      axis.ticks = element_line(linewidth = use_linewidth/2),
+      axis.line = element_line(linewidth = use_linewidth/2),
+      axis.text = element_text(size = 4),
+      axis.title = element_text(size = 4),
+      legend.text = element_text(size = 4),
+      legend.key.width = unit(0.1, &quot;cm&quot;)
+    )</code></pre>
+<p><img src="figure/crispr-brunello.Rmd/combine-stats-grna-dist-1.png" width="1110" style="display: block; margin: auto;" /></p>
+</div>
+<div id="extended-data-figure-5b-crispr-screen-data-quality-control"
+class="section level2" number="7">
+<h2><span class="header-section-number">7</span> Extended Data Figure
+5b: CRISPR screen data quality control</h2>
+<p>Over-Representation analysis (ORA) plot of genes depleted in static
+conditions. FDR, false discovery rate.</p>
+<pre class="r"><code>x &lt;- gene_table %&gt;% 
+  mutate(
+    detected = n_chip_over_10 &gt;= 2,
+    p = ifelse(!detected, 0.01, 1),
+    fc = ifelse(!detected,2, 0)
+    )
+
+ora_fitness &lt;- gse_omnibus(
+    feature_names = x$gene,
+    p = x$p,
+    fc = x$fc,
+    fc_thrs = 0.1,
+    gmt_files = gmt_files_symbols,
+    
+    run_enricher = TRUE,
+    run_enrichGO = TRUE,
+
+    return_sets = &#39;abs&#39;,
+    go_ontologies = c(&#39;BP&#39;),
+    go_simplify = TRUE,
+    go_simplify_p = 0.05,
+    go_simplify_cutoff = 0.4,
+    args_enricher = list(minGSSize = 10, maxGSSize = 250, pvalueCutoff = 1), 
+    annot_db = &#39;org.Hs.eg.db&#39;,
+    organism = &#39;hsapiens&#39;
+    )
+saveRDS(ora_fitness, file = file.path(params$output_dir, &#39;ora_fitness.rds&#39;))</code></pre>
+<p>GO-BP, gene sets with an adjusted P &lt; 0.05</p>
+<pre class="r"><code>ora_fitness &lt;- readRDS(file.path(params$output_dir, &#39;ora_fitness.rds&#39;))
+use_linewidth &lt;- 1/2.141959
+ora_fitness$enrichGO$abs$BP@result %&gt;% 
+  filter(simplify) %&gt;% 
+  filter(p.adjust &lt; 0.05) %&gt;% 
+  mutate(Description = fct_reorder(Description, -log10(p.adjust))) %&gt;%
+  ggplot(aes(-log10(p.adjust), Description, 
+             color = -log10(p.adjust),
+             size = GeneProp)) +
+  geom_point(shape = 19) +
+  scale_color_gradient(
+     high = &quot;#132B43&quot;,
+     low = &quot;#56B1F7&quot;
+  ) +
+  scale_y_discrete(labels = default_labeller(50)) +
+  scale_x_continuous(expand = expansion(mult = c(0.1, 0.1))) +
+  scale_size_continuous(range=c(0.8, 2)) +
+  labs(y = &#39;&#39;, 
+       x = &#39;&#39;,  
+       size = expression(paste(&quot;lo&quot;, g[10],&quot;(FDR)&quot;)),
+       color = &#39;FDR &lt; 0.05&#39;
+       ) +
+  theme(
+    text = element_text(size = 5),
+    axis.line = element_blank(),
+    axis.ticks.y = element_blank(),
+    # axis.ticks.y = element_line(linewidth = use_linewidth/2),
+    axis.ticks.x = element_line(linewidth = use_linewidth/2),
+    panel.border = element_rect(color = &quot;black&quot;, fill = NA, linewidth = use_linewidth),
+   
+    strip.background = element_blank(),
+    axis.text.y = element_text(size = 3),
+    axis.text.x = element_text(size = 3),
+    legend.text = element_text(size = 2),
+    legend.title = element_text(size = 2),
+    legend.key.width = unit(0.1, &quot;cm&quot;)
+  )</code></pre>
+<p><img src="figure/crispr-brunello.Rmd/ora-go-1.png" width="1200" style="display: block; margin: auto;" /></p>
+</div>
+<div id="figure-3b-rank-plot" class="section level2" number="8">
+<h2><span class="header-section-number">8</span> Figure 3b: Rank
 plot</h2>
 <p>Plot presenting genes ranked by log2 fold-change with top depleted
 genes under shear stress highlighted in blue. All other genes are
@@ -984,9 +1217,46 @@ ggplot(data_rank, aes(x = Rank, y = diff, color = group)) +
     axis.ticks = element_line(linewidth = use_linewidth/2)
   )</code></pre>
 <p><img src="figure/crispr-brunello.Rmd/rank-plot-raw-1.png" width="810" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-rank-plot-raw-1">
+Past versions of rank-plot-raw-1.png
+</button>
+</p>
+<div id="fig-rank-plot-raw-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/4178b40b54d1ffa2f77593ee2da420aa73e85795/docs/figure/crispr-brunello.Rmd/rank-plot-raw-1.png" target="_blank">4178b40</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="figure-3c-volcano-plot" class="section level2" number="7">
-<h2><span class="header-section-number">7</span> Figure 3c: Volcano
+</div>
+</div>
+<div id="figure-3c-volcano-plot" class="section level2" number="9">
+<h2><span class="header-section-number">9</span> Figure 3c: Volcano
 plot</h2>
 <p>Volcano plot illustrating the results of the CRISPR screen. Genes
 significantly depleted in samples circulated through the microfluidic
@@ -1029,10 +1299,47 @@ x %&gt;%
     axis.ticks = element_line(linewidth = use_linewidth/2)
   )</code></pre>
 <p><img src="figure/crispr-brunello.Rmd/volcano-plot-1.png" width="810" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-volcano-plot-1">
+Past versions of volcano-plot-1.png
+</button>
+</p>
+<div id="fig-volcano-plot-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/4178b40b54d1ffa2f77593ee2da420aa73e85795/docs/figure/crispr-brunello.Rmd/volcano-plot-1.png" target="_blank">4178b40</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </div>
 <div id="figure-3d-and-extended-data-figure-5cd-functional-enrichment"
-class="section level2" number="8">
-<h2><span class="header-section-number">8</span> Figure 3d and Extended
+class="section level2" number="10">
+<h2><span class="header-section-number">10</span> Figure 3d and Extended
 Data Figure 5c,d: Functional enrichment</h2>
 <pre class="r"><code>library(enrichplot)
 top_n &lt;- 20
@@ -1133,8 +1440,8 @@ split %&lt;&gt;%
 res_top &lt;- res_top %&gt;% 
   left_join(split, by = c(&#39;Description&#39; = &#39;curated_id&#39;))</code></pre>
 <div id="figure-3d-and-extended-data-figure-5d-similarity-matrix"
-class="section level3" number="8.1">
-<h3><span class="header-section-number">8.1</span> Figure 3d and
+class="section level3" number="10.1">
+<h3><span class="header-section-number">10.1</span> Figure 3d and
 Extended Data Figure 5d: Similarity matrix</h3>
 <p>Similarity matrix illustrating significantly enriched pathways within
 the depleted genes in samples circulated through microfluidic platform
@@ -1175,9 +1482,48 @@ ht &lt;- Heatmap(
   )
 draw(ht,  heatmap_legend_side = &quot;bottom&quot;)</code></pre>
 <p><img src="figure/crispr-brunello.Rmd/ora-msigdb-c2cp-similarity-matrix-heatmap-wardD-1.png" width="4320" style="display: block; margin: auto;" /></p>
-<div id="extended-data-figure-5c" class="section level4" number="8.1.1">
-<h4><span class="header-section-number">8.1.1</span> Extended Data
-Figure 5c</h4>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-ora-msigdb-c2cp-similarity-matrix-heatmap-wardD-1">
+Past versions of ora-msigdb-c2cp-similarity-matrix-heatmap-wardD-1.png
+</button>
+</p>
+<div id="fig-ora-msigdb-c2cp-similarity-matrix-heatmap-wardD-1"
+class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/4178b40b54d1ffa2f77593ee2da420aa73e85795/docs/figure/crispr-brunello.Rmd/ora-msigdb-c2cp-similarity-matrix-heatmap-wardD-1.png" target="_blank">4178b40</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="extended-data-figure-5c" class="section level3" number="10.2">
+<h3><span class="header-section-number">10.2</span> Extended Data Figure
+5c</h3>
 <p>Over Representation Analysis (ORA) plot for gene sets with an
 adjusted P value &lt; 0.05.</p>
 <pre class="r"><code>use_linewidth &lt;- 1/2.141959
@@ -1223,12 +1569,48 @@ use_data %&gt;%
     panel.spacing = unit(0.07, &quot;lines&quot;)
   )</code></pre>
 <p><img src="figure/crispr-brunello.Rmd/ora-msigdb-c2cp-dotplot-full-1.png" width="1800" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-ora-msigdb-c2cp-dotplot-full-1">
+Past versions of ora-msigdb-c2cp-dotplot-full-1.png
+</button>
+</p>
+<div id="fig-ora-msigdb-c2cp-dotplot-full-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/4178b40b54d1ffa2f77593ee2da420aa73e85795/docs/figure/crispr-brunello.Rmd/ora-msigdb-c2cp-dotplot-full-1.png" target="_blank">4178b40</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 </div>
 </div>
 <div id="figure-3e-cdc42-sgrna-abundance" class="section level2"
-number="9">
-<h2><span class="header-section-number">9</span> Figure 3e: CDC42 sgRNA
+number="11">
+<h2><span class="header-section-number">11</span> Figure 3e: CDC42 sgRNA
 abundance</h2>
 <p>Normalized <em>CDC42</em> gRNA abundance comparison in samples
 incubated in static conditions (control) or circulated through the
@@ -1256,6 +1638,43 @@ use_data %&gt;%
     title = paste(&#39;sgRNAs in&#39;, use_gene)
   )</code></pre>
 <p><img src="figure/crispr-brunello.Rmd/guides-paired-abundance-cdc42-1.png" width="1080" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-guides-paired-abundance-cdc42-1">
+Past versions of guides-paired-abundance-cdc42-1.png
+</button>
+</p>
+<div id="fig-guides-paired-abundance-cdc42-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/TheAcetoLab/ildiz-ctc-shear-stress/blob/4178b40b54d1ffa2f77593ee2da420aa73e85795/docs/figure/crispr-brunello.Rmd/guides-paired-abundance-cdc42-1.png" target="_blank">4178b40</a>
+</td>
+<td>
+Francesc Castro-Giner
+</td>
+<td>
+2025-01-08
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
