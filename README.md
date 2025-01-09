@@ -18,7 +18,7 @@ Raw data is available at Gene Expression Omnibus (GEO, NCBI; accession numbers [
 
 To reproduce our analysis, first clone source code from the [GitHub repository](https://github.com/TheAcetoLab/ildiz-ctc-shear-stress). This repository is also archived at [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXXXXX.svg)](https://doi.org/10.5281/XXXXXXXXXX)
 
-    git clone https://github.com/TheAcetoLab/saini-stealTHY
+    git clone https://github.com/TheAcetoLab/ildiz-ctc-shear-stress
 
 Next, download processed data and output data deposited in [Zenodo](https://doi.org/10.5281/zenodo.14600505) into the cloned project folder and untar the files.
 
