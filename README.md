@@ -28,3 +28,4 @@ The results form our analyses are listed below in webpage format. They were gene
 
 Files containing necessary data and pre-computed results from differential expression or gene-set enrichment analyses were deposited in [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14600505.svg)](https://doi.org/10.5281/zenodo.14600505). In order to generate those files again change the option `eval = FALSE` to `eval = TRUE` in the specific code chunk from the R Markdown file. The expected run time using the data deposited in the zenodo directoy  [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14600505.svg)](https://doi.org/10.5281/zenodo.14600505) is less than 30 minutes. 
 
+Instructions and necessary data to reproduce the computational fluid dynamics analysis using COMSOL software are included in the comsol directory.
