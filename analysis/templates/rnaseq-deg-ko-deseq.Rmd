@@ -1,0 +1,427 @@
+<!-- To be compatible with workflowr, we need to specify the absolute directory under which the plots are generated, otherwise they will be saved into figure/<basename>.Rmd/<chunk-name>.<extension. and not visible in the html document: https://github.com/workflowr/workflowr/issues/111 -->
+```{r template-options, include = FALSE}
+library(ggbeeswarm)
+knitr::opts_knit$set(
+  base.dir = "docs"
+  )
+```
+
+
+
+#### Download results
+
+<!-- Write DGE results to xlsx file -->
+```{r write-dge-xlsx}
+# File name summary
+rmd_file <- current_input()
+if(is.null(rmd_file))
+  rmd_file <- 'tmp'
+file_xlsx <- file.path('./docs/file',rmd_file, paste0('dge.',file_prefix,'.xlsx'))
+
+dir.create(dirname(file_xlsx), recursive = TRUE, showWarnings = FALSE)
+
+# Generate workbook
+wb <- createWorkbook()
+for(i in names(dge_list)) {
+  addWorksheet(wb, i)
+  res <- dge_list[[i]]
+  writeData(wb, i, res)
+}
+saveWorkbook(wb, file_xlsx, TRUE)
+
+dge_file_xlsx <- file_xlsx
+```
+
+
+- [**Differential gene expression**](`r gsub("docs/", "" , dge_file_xlsx)`)
+
+#### Summary of results
+```{r dge-summary-fdr-conf}
+use_names <- setdiff(names(dge_list), 'combined')
+```
+
+
+##### FDR distribution
+```{r dge-summary-fdr-dist}
+i <- use_names[1]
+res <- foreach(i = use_names, .combine = rbind) %do% {
+  x <- dge_list[[i]]
+  c(
+    `P-adjusted < 0.1` = x %>% filter(padj <= 0.1) %>% nrow,
+    `P-adjusted < 0.05` = x %>% filter(padj <= 0.05) %>% nrow,
+    `P-adjusted < 0.01` = x %>% filter(padj <= 0.01) %>% nrow,
+    `P-adjusted < 0.001` = x %>% filter(padj <= 0.001) %>% nrow,
+    `P-adjusted < 0.0001` = x %>% filter(padj <= 0.0001) %>% nrow
+  )
+}
+if(class(res)[1] == 'integer'){
+  res <- data.frame(res) %>% t() 
+}
+
+rownames(res) <-use_names
+res %>% 
+  data.frame(check.names = F) %>% 
+  rownames_to_column('comparison') %>% 
+  kbl(caption = 'Number of genes at different FDR thresholds') %>%
+  kable_paper(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>%
+  column_spec(1, bold = TRUE)
+```
+
+##### Number of genes at FDR ≤ 0.05
+```{r dge-summary-fdr-05}
+i <- use_names[1]
+res <- foreach(i = use_names, .combine = rbind) %do% {
+  x <- dge_list[[i]]%>% 
+    filter(!is.na(padj)) %>%
+    filter(padj <= p_thrs)
+  c(
+    `Up` = x %>% filter(log2FoldChange > 0) %>% nrow,
+    `Down` = x %>% filter(log2FoldChange < -0) %>% nrow
+  )
+}
+if(class(res)[1] == 'integer'){
+  res <- data.frame(res) %>% t() 
+}
+
+rownames(res) <- use_names
+res %>% 
+  data.frame(check.names = F) %>% 
+  rownames_to_column('comparison') %>% 
+  kbl(caption = 'Number of genes at adjusted P value < 0.05') %>%
+  kable_paper(bootstrap_options = c("striped", "hover", "condensed"), full_width = F) %>%
+  column_spec(1, bold = TRUE)
+cat("\n\n")
+```
+
+
+
+#### Volcano-plots
+Top-20 genes based on adjusted P-values are labeled.
+
+```{r dge-volcano-plot, echo=FALSE, results='asis'}
+i=use_names[1]
+for(i in use_names) {
+  cat("##### Comparison:", i, "\n\n")
+  # cat(dge_list[[i]]$comparison, "\n\n")
+  x <- dge_list[[i]]
+  res <- plot.volcano(
+    x$log2FoldChange, 
+    x$padj, 
+    label = x$gene_name, 
+    fill.palette = c("gray80", "red"), 
+    top.labels = 20, 
+    pval.thr = p_thrs, 
+    hline.color =  'grey60', hline.type = 2, hline.size = 0.5) +
+    geom_vline(xintercept = 0, linetype = 2, linewidth = 0.5, color = 'grey60')
+  
+  subchunkify(print(res), 
+                fig.width = 3.5, 
+                fig.height = 3.5*0.618,
+                dpi = 600,
+                prefix = paste0('dge-volcano-', file_prefix),
+                suffix = tolower(i) %>% gsub(" ", "-", .))
+  
+  cat("\n\n")
+}
+```
+
+
+#### Heatmaps
+
+```{r dge-heatmap-plot, echo=FALSE, results='asis'}
+i <- use_names[1]
+# p_thrs <- 0.05
+# lfc_thrs <- 1
+topn <- 50
+max_color_range <- 3 # put the color range to -3 to 3
+
+for(i in use_names) {
+  cat("##### Comparison", i, "\n\n")
+
+  # Extract samples from comparisons
+  use_samples <- subset_list[[use_subset]]
+  use_se <- se[,use_samples]
+  
+  # Arrange samples by condition (first control and then sample)
+  use_annot <- colData(use_se) %>% data.frame %>%
+    arrange(condition, ko)
+    # mutate(
+    #   condition_new = ifelse(sample_alias %in% use_comp[[1]], 
+    #                          names(use_comp)[1], 
+    #                          names(use_comp)[2]),
+    #   condition_new = factor(condition_new, levels = names(use_comp)[2:1]),
+    #   condition_num = as.numeric(condition_new)
+    # ) %>% 
+    # arrange(condition_num)
+  use_samples <- rownames(use_annot)
+  
+  # Extract DGE results
+  use_dge <- dge_list[[i]] %>% 
+    filter(!is.na(padj)) %>%
+    filter(padj < p_thrs & abs(log2FoldChange) > lfc_thrs) %>% 
+    mutate(direction = ifelse(log2FoldChange > 0, 'Up', 'Down')) %>% 
+    arrange(padj) %>% 
+    head(topn) %>% 
+    arrange(log2FoldChange)
+  if(nrow(use_dge) > 50){
+    cat(paste0("Showing ", nrow(use_dge)," features with FDR < ", p_thrs, " and absolute log2 fold-change > ", lfc_thrs, "\n"))
+  } else {
+    cat(paste0("Only ", nrow(use_dge)," features with FDR < ", p_thrs, " and absolute log2 fold-change > ", lfc_thrs, ". Showing top-", topn," features based on P value and absolute log2 fold-change >", lfc_thrs,"\n"))
+    use_dge <- dge_list[[i]]  %>% 
+      filter(!is.na(padj)) %>%
+      filter(padj < p_thrs & abs(log2FoldChange) > lfc_thrs) %>% 
+      mutate(direction = ifelse(log2FoldChange > 0, 'Up', 'Down')) %>% 
+      arrange(padj) %>% 
+      head(topn) %>% 
+      arrange(log2FoldChange)
+  }
+  
+  if(nrow(use_dge) > 2){
+  # Extract matrix of expression
+  mat <- assay(use_se, 'logcounts')[use_dge$gene_name, use_samples]
+  # rownames(mat) <- make.names(use_dge$gene_name, unique = TRUE)
+  zmat <- t(apply(mat, 1, scale, center = TRUE, scale = TRUE))
+  colnames(zmat) <- colnames(mat)
+  zmat <- zmat[,rownames(use_annot)]
+  
+  # Col Annotation
+  use_annot_levels <-levels(use_annot$condition_new)
+  column_ha <-  HeatmapAnnotation(
+    condition = anno_block(
+      # gp = gpar(fill = c('#fdbf6f', '#6a3d9a') %>% set_names(use_annot_levels)),
+      labels = use_annot_levels, 
+      labels_gp = gpar(col = "black", fontsize = 8)
+    ),
+    `Condition` = use_annot$condition,
+    `KO` = use_annot$ko,
+    col = list(
+      `Condition` = condition_palette_red,
+      `KO` = ko_palette
+    )
+  )
+    
+  # Row annotation (right)
+  row_annot_right <-  rowAnnotation(
+    log2FC = anno_numeric(
+      round(use_dge$log2FoldChange,1), 
+      labels_gp = gpar(fontsize = 6), 
+      bg_gp = gpar(
+        fill = c("#74add1", "#f46d43"), 
+        col = 'white'
+      ),
+      bar_width = unit(1, "npc") - unit(1.5, "pt")
+    ), 
+    annotation_name_rot = 0)
+  
+  # Row annotation (left)
+  direction_palette <- c('Up' = "#f46d43", 'Down' = "#74add1")
+  direction_palette <- direction_palette[names(direction_palette) %in% use_dge$direction]
+  
+  row_annot_left <-  rowAnnotation(
+    direction = anno_block(
+      gp = gpar(fill = direction_palette),
+      labels = names(direction_palette), 
+      labels_gp = gpar(col = "white", fontsize = 8)
+    )
+  )
+  
+  # Heatmap color
+  zmax <- zmat %>% abs %>% max
+  if(!is.null(max_color_range))
+    zmax <- max_color_range
+  col_fun <-  colorRamp2(
+    seq(-zmax, zmax, length.out = 11),
+    rev(brewer.pal(11, "RdBu"))
+  )
+  
+  # Generate Heatmap
+  htz <- Heatmap(
+    zmat,
+    name= 'z-score',
+    col = col_fun,
+    row_names_gp = gpar(fontsize = 8),
+    column_names_gp = gpar(fontsize = 8),
+    
+    top_annotation = column_ha,
+    column_split = use_annot$condition_num,
+    #cluster_column_slices = turn off the clustering on slices, and now you can precisely control the order of slices
+    cluster_column_slices = FALSE, 
+    column_title = NULL,
+    
+    right_annotation = row_annot_right,
+    row_split = use_dge$direction,
+    # left_annotation = row_annot_left,
+    row_title = NULL
+  )
+  
+  fig_height <- (7.2*0.3) + nrow(zmat)*0.15
+  fig_height <- ifelse(fig_height < 7, 7, fig_height)
+  
+  subchunkify(
+    draw(
+      htz, 
+      annotation_legend_side = "bottom"
+    ), 
+    fig.width = 7.2, 
+    fig.height = fig_height,
+    dpi = 600,
+    prefix = paste0('dge-heatmap-plot-', file_prefix),
+    suffix = tolower(i) %>% gsub(" ", "-", .)
+  )
+  cat("\n\n")
+    
+    
+  } else {
+    cat(paste0("Less than 2 genes with FDR < ", p_thrs, " and absolute log2 fold-change > ", lfc_thrs, "\n"))
+  }
+    
+  cat("\n\n")
+  
+}
+```
+
+
+#### Fold-change plots
+
+Plot comparing the fold-change of shear stress in KO versus WT conditions
+```{r log2fc-scatter}
+use_data <- dge_list[['combined']] %>%
+  filter(!is.na(padj_wt) | !is.na(padj_ko)) %>%
+  filter(!is.na(padj_wt) & !is.na(padj_ko)) %>%
+  mutate(padj_int = ifelse(padj_int > p_limit, padj_int, p_limit)) %>%
+  arrange(desc(padj_int))
+```
+
+Scatter plot labeling top-20 most significant genes based on adjusted P value for interaction
+```{r log2fc-scatter-top20, echo=FALSE, results='asis'}
+label_genes <- use_data %>% tail(20)
+
+res <- use_data %>% 
+  ggplot(aes(log2FoldChange_ko, log2FoldChange_wt,
+             color = -log10(padj_int), size = -log10(padj_int))) +
+  geom_abline(lty = 'dashed', color = 'gray60', linewidth = one_pt/2) +
+  geom_hline(yintercept = 0, lty = 'dashed', color = 'gray60', linewidth = one_pt/2) +
+  geom_vline(xintercept = 0, lty = 'dashed', color = 'gray60', linewidth = one_pt/2) +
+  geom_point(pch = 16, alpha = 0.7) +
+  geom_text_repel(aes(label = gene_name), 
+                  data = label_genes, 
+                  min.segment.length = 0, 
+                  seed = 42, 
+                  box.padding = 0.5, 
+                  max.overlaps = Inf, 
+                  show.legend = FALSE, 
+                  size = geom_text_size,
+                  segment.size = one_pt/2,
+                  segment.alpha = 0.7) +
+  scale_color_viridis_c(direction = -1) +
+  scale_size_continuous(range = c(0.1, 2)) +
+  labs(
+    title = paste('Differential expression analysis in', use_subset),
+    y = 'log2FC shear stress in wt',
+    x = 'log2FC shear stress in ko',
+    color = '-log10(padj)\ninteraction',
+    caption = paste('Adjusted P value capped at', p_limit)
+  ) #+
+  # scale_colour_gradientn(
+  #   colours = c("#E6E9AF", "#8EA3A6", "#605EA1", "#22177A"),
+  #   rescaler = ~ scales::rescale_mid(.x, mid = -log10(0.0001))
+  # )
+
+  subchunkify(
+    print(res), 
+    fig.width = 3.6, 
+    fig.height = 3.6*0.618,
+    dpi = 600,
+    prefix = paste0('log2fc-scatter-top20-', file_prefix)
+    # suffix = tolower(i) %>% gsub(" ", "-", .)
+  )
+
+```
+
+Scatter plot labeling candidate genes
+```{r log2fc-scatter-candidate_genes, echo=FALSE, results='asis'}
+label_genes <- use_data %>% filter(gene_name %in% candidate_genes)
+
+res <- use_data %>% 
+  ggplot(aes(log2FoldChange_ko, log2FoldChange_wt,
+             color = -log10(padj_int), size = -log10(padj_int))) +
+  geom_abline(lty = 'dashed', color = 'gray60', linewidth = one_pt/2) +
+  geom_hline(yintercept = 0, lty = 'dashed', color = 'gray60', linewidth = one_pt/2) +
+  geom_vline(xintercept = 0, lty = 'dashed', color = 'gray60', linewidth = one_pt/2) +
+  geom_point(pch = 16, alpha = 0.7) +
+  geom_text_repel(aes(label = gene_name), 
+                  data = label_genes, 
+                  min.segment.length = 0, 
+                  seed = 42, 
+                  box.padding = 0.5, 
+                  max.overlaps = Inf, 
+                  show.legend = FALSE, 
+                  size = geom_text_size,
+                  segment.size = one_pt/2,
+                  segment.alpha = 0.7) +
+  scale_color_viridis_c(direction = -1) +
+  scale_size_continuous(range = c(0.1, 2)) +
+  labs(
+    title = paste('Differential expression analysis in', use_subset),
+    y = 'log2FC shear stress in wt',
+    x = 'log2FC shear stress in ko',
+    color = '-log10(padj)\ninteraction',
+    caption = paste('Adjusted P value capped at', p_limit)
+  ) #+
+  # scale_colour_gradientn(
+  #   colours = c("#E6E9AF", "#8EA3A6", "#605EA1", "#22177A"),
+  #   rescaler = ~ scales::rescale_mid(.x, mid = -log10(0.0001))
+  # )
+
+  subchunkify(
+    print(res), 
+    fig.width = 3.6, 
+    fig.height = 3.6*0.618,
+    dpi = 600,
+    prefix = paste0('log2fc-scatter-candidate_genes-', file_prefix)
+    # suffix = tolower(i) %>% gsub(" ", "-", .)
+  )
+
+```
+
+
+
+```{r  log2fc-dotplot-candidate_genes, echo=FALSE, results='asis'}
+knitr::opts_knit$set(
+  base.dir = "docs"
+  )
+
+use_data <- foreach(i = use_names, .combine = rbind) %do% {
+  dge_list[[i]] %>% 
+    mutate(comparison = i)
+}
+
+# generate barplot for use_data using gene_names in candidate_genes, showing log2FoldChange and padj
+comparison_palette <- c(chip_in_ko="#1F83B4",
+                        chip_in_wt ="#FFBD4C",
+                        ko_in_chip = "#29A03C",
+                        ko_in_control = "#6F63BB",
+                        interaction = "#E75727")
+res <- use_data %>% 
+  filter(gene_name %in% candidate_genes) %>%
+  mutate(padj = ifelse(padj > p_limit, padj, p_limit)) %>%
+  mutate(comparison = factor(comparison, levels = rev(names(comparison_palette)))) %>%
+  ggplot(aes(y = comparison, x = log2FoldChange, 
+             color = comparison, size = -log10(padj))) +
+  geom_point(pch = 16) +
+  geom_vline(xintercept = 0, lty = 2, linewidth =one_pt/2) +
+  scale_size_continuous(range = c(0.05,2)) +
+  facet_grid(rows = vars(gene_name)) +
+  scale_color_manual(values = comparison_palette) +
+  theme_facet +
+  labs(x = 'log2 Fold Change', y = '')
+
+  subchunkify(
+    print(res), 
+    fig.width = 3.6, 
+    fig.height = 3.6*1.2,
+    dpi = 600,
+    prefix = paste0('log2fc-dotplot-candidate_genes', file_prefix)
+    # suffix = tolower(i) %>% gsub(" ", "-", .)
+  )
+```
