@@ -1,0 +1,402 @@
+---
+title: "Analysis of gene KO and shear stress in BR16"
+subtitle: "Differential gene expression at gene level"
+author: "Francesc Castro-Giner"
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+params:
+  date: '`r format(Sys.Date(), "%B %d, %Y")`'
+  output_dir: ./output/rnaseq/bulk-gene_ko/br16/differential_expression/gene
+  se_file: ./data/rnaseq/bulk-ko/br16/se.rds
+---
+
+## Load libraries, additional functions and data
+
+Setup environment
+```{r setup, include=TRUE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(results='asis', echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, fig.align = 'center', fig.width = 3.5, fig.asp = 0.618, dpi = 600, dev = c("png", "pdf"), engine.opts = list(bash = "-l"))
+
+options(stringsAsFactors = FALSE)
+
+use_seed <- 1100101
+set.seed(use_seed)
+
+dir.create(params$output_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+Load packages
+```{r load-libraries}
+library(tidyverse)
+library(knitr)
+library(ggplot2)
+library(tibble)
+library(tidyr)
+library(readr)
+library(purrr)
+library(dplyr)
+library(forcats)
+library(kableExtra)
+library(RColorBrewer)
+library(ggrepel)
+library(openxlsx)
+
+library(showtext)
+library(foreach)
+library(magrittr)
+
+library(SummarizedExperiment)
+library(edgeR)
+library(DESeq2)
+library(ComplexHeatmap)
+library(circlize)
+```
+
+Load ggplot theme
+```{r ggplot-theme}
+source("./configuration/rmarkdown/ggplot_theme.R")
+```
+
+Set color palettes
+```{r, echo = FALSE}
+source("./configuration/rmarkdown/color_palettes.R")
+```
+
+Load custom functions
+```{r load-functions}
+source('./code/R-functions/gse_omnibus.r')
+source('./code/R-functions/gse_report.r')
+source('./code/R-functions/dge_wrappers.r')
+source('./code/R-functions/dge_report.r')
+source('./code/R-functions/subchunkify.r')
+source('./code/R-functions/pairwise_terms_jc.r')
+clean_msigdb_names <- function(x) x %>% gsub('REACTOME_', '', .) %>% gsub('WP_', '', .) %>% gsub('BIOCARTA_', '', .) %>% gsub('KEGG_', '', .) %>% gsub('PID_', '', .) %>% gsub('GOBP_', '', .) %>% gsub('_', ' ', .) %>% str_to_sentence
+
+```
+
+
+Load MSigDB gene sets
+```{r load-msigdb}
+msigdb_vs <- 'v2022.1.Hs'
+gmt_files_symbols <- list(
+  msigdb.c2.cp = paste0('./data/resources/MSigDB/', msigdb_vs, '/c2.cp.', msigdb_vs, '.symbols.gmt')
+)
+```
+
+## Data processing
+
+Load data
+```{r load-data}
+se_files <- strsplit(params$se_file, ",") %>% unlist
+
+if(length(se_files) > 1) {
+  se_list <- foreach(se_file = se_files) %do% {
+    readRDS(se_file)
+  }
+  se <- merge_SummarizedExperiment(se_list)
+} else {
+  se <- readRDS(se_files)
+}
+```
+
+Modify colData and rowData
+```{r dw-mod-data}
+colData(se) %<>% data.frame %>% 
+  mutate(
+    ko = ifelse(gene_ko == 'WT', 'wt', 'ko') %>% 
+      factor(levels = c('wt', 'ko')),
+  ) %>% 
+  DataFrame
+
+rownames(se) <- rowData(se)$gene_name %>% make.names(unique = TRUE)
+```
+
+
+## Define of comparisons
+
+Define groups of analysis
+```{r conf-comparisons}
+x <- colData(se) %>% data.frame
+use_subsets <- setdiff(unique(x$gene_ko), 'WT')
+subset_list <- foreach(i = use_subsets) %do% {
+  x %>% 
+    filter(gene_ko %in% c('WT', i)) %>% 
+    rownames
+}
+names(subset_list) <- use_subsets
+```
+
+## Data generation
+
+### Run differential expression analysis
+
+Get Ensembl gene info
+```{r de-ensembl, eval = FALSE}
+ensembl <-  biomaRt::useEnsembl(biomart="genes", dataset="hsapiens_gene_ensembl",
+                                mirror = 'useast')
+gene_desc <- biomaRt::getBM(attributes=c('external_gene_name','description'),
+                              filters = 'external_gene_name',
+                              values = rowData(se)$gene_name, mart =ensembl) %>%
+    dplyr::rename('gene_name' = 'external_gene_name') %>%
+    unique
+
+gene_desc <- gene_desc[!duplicated(gene_desc$gene_name),]
+saveRDS(gene_desc, file = file.path(params$output_dir, 'ensembl_gene_desc.rds'))
+```
+
+```{r de-ensembl-load, eval = FALSE}
+gene_desc <- readRDS(file = file.path(params$output_dir, 'ensembl_gene_desc.rds'))
+```
+
+Run differential expression analysis using DESeq for each subset
+```{r deseq2-run, eval = FALSE}
+use_subset <- subset_list[[1]]
+dge_list <- foreach(use_subset = subset_list) %do%{
+  use_se <- se[,use_subset]
+  group_levels <- outer(levels(use_se$condition), levels(use_se$ko), paste, sep="_") %>% 
+    as.vector
+  use_se$group <- paste(use_se$condition, use_se$ko, sep = '_') %>% 
+    factor(levels = group_levels)
+
+  # Generate DESeq for group
+  dds <- DESeqDataSet(use_se, design = ~ group)
+  dds <- DESeq(dds)
+   # resultsNames(dds)
+  # Contrast: a character vector with exactly three elements: the name of a factor in the design formula, the name of the numerator level for the fold change, and the name of the denominator level for the fold change (simplest case)
+  res_chip_in_wt <- results(dds, contrast = c("group", "Chip_wt", "Control_wt")) %>% 
+    data.frame %>% 
+    rownames_to_column('gene_name') %>% 
+    left_join(
+      gene_desc, by = 'gene_name'
+    )
+  res_chip_in_ko <- results(dds, contrast = c("group", "Chip_ko", "Control_ko")) %>% 
+    data.frame %>% 
+    rownames_to_column('gene_name') %>% 
+    left_join(
+      gene_desc, by = 'gene_name'
+    )
+  res_ko_in_control <- results(dds, contrast = c("group", "Control_ko", "Control_wt")) %>% 
+    data.frame %>% 
+    rownames_to_column('gene_name') %>% 
+    left_join(
+      gene_desc, by = 'gene_name'
+    )
+  res_ko_in_chip <- results(dds, contrast = c("group", "Chip_ko", "Chip_wt")) %>% 
+    data.frame %>% 
+    rownames_to_column('gene_name') %>% 
+    left_join(
+      gene_desc, by = 'gene_name'
+    )
+   
+  
+  # Generate DESeq for interaction
+  dds <- DESeqDataSet(use_se, design = ~ condition + ko + condition:ko)
+  dds <- DESeq(dds)
+  # resultsNames(dds)
+  # res_chip_wt_i <- results(dds, contrast = c("condition", "Control", "Chip"))
+  # res_ko_in_control_i <- results(dds, contrast = c("ko", "wt", "ko"))
+  res_i <- results(dds, name ="conditionChip.koko")  %>% 
+    data.frame %>% 
+    rownames_to_column('gene_name') %>% 
+    left_join(
+      gene_desc, by = 'gene_name'
+    )
+  # res_chip_wt== res_chip_wt_i
+  # res_ko_in_control == res_ko_in_control_i
+  
+  # Interpretation of log2FC of interaction:
+  # the log2FC of interaction (conditionChip.koko) represents the 
+  # additional effect of ko in Chip condition compared to Control condition. 
+  # log2FC(i) = log2FC(Chip_ko-over-Chip_wt) - log2FC(Control_ko-over-Control_wt)
+  
+  # Combine results in a single data.frame
+  res_comb <- full_join(
+    res_chip_in_wt,
+    res_chip_in_ko,
+    by = c('gene_name', 'description'), 
+    suffix = c('_wt', '_ko')
+  ) %>% 
+    left_join(
+      res_i %>% 
+        dplyr::rename(
+          log2FoldChange_int = log2FoldChange, 
+          pvalue_int = pvalue, 
+          padj_int = padj) %>% 
+        dplyr::select(gene_name, ends_with('int'))
+      ) %>% 
+    dplyr::select(-description)%>% 
+    left_join(
+      gene_desc, by = 'gene_name'
+    )
+    
+  
+  # Return results
+  res <- list(
+    chip_in_wt = res_chip_in_wt,
+    chip_in_ko = res_chip_in_ko,
+    ko_in_control = res_ko_in_control,
+    ko_in_chip = res_ko_in_chip,
+    interaction = res_i,
+    combined = res_comb
+  )
+  
+  return(res)
+}
+
+names(dge_list) <- names(subset_list)
+saveRDS(dge_list, file = file.path(params$output_dir, 'dge-deseq2.rds'))
+
+```
+
+### Run functional enrichment
+```{r gse-run, eval = FALSE}
+dge_list <- readRDS(file.path(params$output_dir, 'dge-deseq2.rds'))
+dge_subset <-  dge_list[[2]]
+
+gse_list <- foreach(dge_subset = dge_list) %do%{
+  dge_subset$combined <- NULL
+  gse_res_list <- foreach(dge = dge_subset) %do% {
+    gse_res <- gse_omnibus(
+      feature_names = dge$gene_name,
+      p = dge$padj,
+      fc = dge$log2FoldChange,
+      fc_thrs = 0.2,
+      gmt_files = gmt_files_symbols,
+      
+      run_enricher = TRUE,
+      run_GSEA = TRUE,
+      
+      go_simplify_p = 0.05,
+      args_gse = list(minGSSize = 10, maxGSSize = 250, 
+                      pvalueCutoff = 1, 
+                      BPPARAM = BiocParallel::MulticoreParam(1)),
+      args_enricher = list(minGSSize = 10, maxGSSize = 250, 
+                      pvalueCutoff = 1)
+    )
+    
+    return(gse_res)
+  }
+  names(gse_res_list) <- names(dge_subset)
+  return(gse_res_list)
+}
+names(gse_list) <- names(dge_list)
+
+# Save objects
+saveRDS(gse_list, file = file.path(params$output_dir,'gse-deseq2.rds'))
+
+```
+
+### Load data
+```{r dge-gse-load}
+dge_subset_list <- readRDS(file = file.path(params$output_dir, 'dge-deseq2.rds'))
+gse_subset_list <- readRDS(file = file.path(params$output_dir, 'gse-deseq2.rds'))
+```
+
+## AHR
+```{r AHR-inhibitor-conf}
+use_subset <- 'AHR'
+use_gse_list <- dge_subset_list[[use_subset]]
+p_thrs <- 0.05
+lfc_thrs <- 1
+p_limit <- 1e-10
+comparisons_indv <- setdiff(names(use_gse_list), 'combined')
+candidate_genes <- c('CYP1A1', 'CYP1B1', 'NFE2L2', 'TIPARP', 'LHX4', 'CYP1A2', 'NQO1', 'AHR', 'UGT1A6', 'UGT1A1', 'CDC42')
+
+# Classify genes by regulation
+use_gse_list_update <- foreach(i = comparisons_indv) %do% {
+  use_gse_list[[i]] %>%
+    filter(!is.na(padj)) %>%
+    mutate(
+      regulation = case_when(
+        padj <= p_thrs & log2FoldChange > lfc_thrs ~ 'up',
+        padj <= p_thrs & log2FoldChange < -lfc_thrs ~ 'down',
+        TRUE ~ 'ns'
+      )
+    )
+}
+names(use_gse_list_update) <- comparisons_indv
+use_gse_list_update[['combined']] <- use_gse_list[['combined']]
+use_gse_list <- use_gse_list_update
+rm(use_gse_list_update)
+
+# Prepare variables to run template
+dge_list <- use_gse_list
+gse_list <- gse_subset_list[[use_subset]]
+file_prefix <- use_subset
+```
+
+
+### Differential gene expression
+```{r AHR-inhibitor-knitr-template-deseq, eval = TRUE}
+# # knit template: https://workflowr.github.io/workflowr/articles/wflow-07-common-code.html
+src <- knit_expand(
+  file = here::here("analysis/templates/rnaseq-deg-ko-deseq.Rmd")
+  )
+```
+`r knit(text = src)`
+
+### Functional enrichment analysis
+```{r AHR-inhibitor-knitr-template-gse, eval = TRUE}
+# knit template: https://workflowr.github.io/workflowr/articles/wflow-07-common-code.html
+src <- knit_expand(
+  file = here::here("analysis/templates/rnaseq-gse-omnibus-drug_inhibitors.Rmd")
+  )
+```
+`r knit(text = src)`
+ 
+
+
+## CYP1A1 and CYP1B1
+```{r CYP1A1_CYP1B1-inhibitor-conf}
+use_subset <- 'CYP1A1_CYP1B1'
+use_gse_list <- dge_subset_list[[use_subset]]
+p_thrs <- 0.05
+lfc_thrs <- 1
+p_limit <- 1e-10
+comparisons_indv <- setdiff(names(use_gse_list), 'combined')
+candidate_genes <- c('CYP1A1', 'CYP1B1', 'NFE2L2', 'TIPARP', 'LHX4', 'CYP1A2', 'NQO1', 'AHR', 'UGT1A6', 'UGT1A1', 'CDC42')
+
+# Classify genes by regulation
+use_gse_list_update <- foreach(i = comparisons_indv) %do% {
+  use_gse_list[[i]] %>%
+    filter(!is.na(padj)) %>%
+    mutate(
+      regulation = case_when(
+        padj <= p_thrs & log2FoldChange > lfc_thrs ~ 'up',
+        padj <= p_thrs & log2FoldChange < -lfc_thrs ~ 'down',
+        TRUE ~ 'ns'
+      )
+    )
+}
+names(use_gse_list_update) <- comparisons_indv
+use_gse_list_update[['combined']] <- use_gse_list[['combined']]
+use_gse_list <- use_gse_list_update
+rm(use_gse_list_update)
+
+# Prepare variables to run template
+dge_list <- use_gse_list
+gse_list <- gse_subset_list[[use_subset]]
+file_prefix <- use_subset
+```
+
+
+### Differential gene expression
+```{r CYP1A1_CYP1B1-inhibitor-knitr-template-deseq, eval = TRUE}
+# # knit template: https://workflowr.github.io/workflowr/articles/wflow-07-common-code.html
+src <- knit_expand(
+  file = here::here("analysis/templates/rnaseq-deg-ko-deseq.Rmd")
+  )
+```
+`r knit(text = src)`
+
+### Functional enrichment analysis
+```{r CYP1A1_CYP1B1-inhibitor-knitr-template-gse, eval = TRUE}
+# knit template: https://workflowr.github.io/workflowr/articles/wflow-07-common-code.html
+src <- knit_expand(
+  file = here::here("analysis/templates/rnaseq-gse-omnibus-drug_inhibitors.Rmd")
+  )
+```
+`r knit(text = src)`
+ 
+
